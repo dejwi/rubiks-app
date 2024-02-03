@@ -13,6 +13,7 @@ import {
 } from "@/helpers/helper";
 import CubeVisualization from "@/components/cube-visualization/cube-visulatization";
 import { colorScanMap } from "@/helpers/color-scan-map";
+import { solvedRubiksCube } from "@/helpers/solved-cube";
 
 // const RGBToHSL = (r: number, g: number, b: number) => {
 //   r /= 255;
@@ -85,7 +86,8 @@ const facesToScan: IFaces[] = [
 function MainPage() {
   const [streamStared, setStreamStarted] = useState(false);
   const [devices, setDevices] = useState<{ id: string; label: string }[]>([]);
-  const [cube, setCube] = useState<IRubiks>([...emptyRubiksCube]);
+  // const [cube, setCube] = useState<IRubiks>([...emptyRubiksCube]);
+  const [cube, setCube] = useState<IRubiks>([...solvedRubiksCube]);
   const [currentScanFace, setCurrentScanFace] = useState(0);
   const [scanComplete, setScanComplete] = useState(false);
   const [scanReversed, setScanReversed] = useState(true);
@@ -206,6 +208,9 @@ function MainPage() {
         <button onClick={() => setScanReversed((state) => !state)}>
           Reverse: {scanReversed.toString()}
         </button>
+        <button onClick={() => setPreviewReversed((state) => !state)}>
+          Reverse preview: {previewReversed.toString()}
+        </button>
         <button onClick={() => setTogglePreview((state) => !state)}>
           Preview: {togglePreview.toString()}
         </button>
@@ -216,7 +221,7 @@ function MainPage() {
               video.current?.play();
             }
             const stream = await navigator.mediaDevices.getUserMedia({
-              video: true,
+              video: { deviceId: { exact: select.current?.value } },
             });
             video.current.srcObject = stream;
             setStreamStarted(true);
@@ -314,7 +319,8 @@ function MainPage() {
         className={`w-[40rem] hidden  ${scanReversed ? "-scale-x-100" : ""}`}
       />
       <img ref={screenshotImg} />
-      <div>{currentScanFace > 0 && <CubeVisualization rubiks={cube} />}</div>
+      {/* currentScanFace > 0 */}
+      <div>{true && <CubeVisualization rubiks={cube} />}</div>
     </div>
   );
 }
