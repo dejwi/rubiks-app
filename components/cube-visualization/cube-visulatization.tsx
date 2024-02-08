@@ -3,16 +3,10 @@
 import * as THREE from "three";
 
 import { useEffect, useRef } from "react";
-import {
-  colorMapThree,
-  cubeColorMap,
-  getIdxByPos,
-  getPosByIdx,
-} from "@/helpers/helper";
+import { colorMapThree, cubeColorMap, getIdxByPos, getPosByIdx } from "@/helpers/helper";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { IRubiks } from "@/helpers/types";
-import { genEmptyThreeCube } from "./empty-cube";
+import { genEmptyThreeCube } from "./empty-cube2";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -23,38 +17,37 @@ import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader.js";
+import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
 // import { GlitchPass } from "three/addons/postprocessing/GlitchPass.js";
 // import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
 const CUBE_SIZE = 1;
 
 interface IProps {
-  rubiks: IRubiks;
+  cube: string;
 }
 
-function CubeVisualization({ rubiks }: IProps) {
-  const cubes = useRef<THREE.Group[]>(genEmptyThreeCube());
+function CubeVisualization({ cube }: IProps) {
+  const cubes = useRef(genEmptyThreeCube()[0]);
   const refContainer = useRef<HTMLDivElement>(null);
   const inited = useRef(false);
 
-  useEffect(() => {
-    console.log({ rubiks });
-    for (let i = 0; i < rubiks.length; i++) {
-      Object.entries(rubiks[i]).forEach(([side, color]) => {
-        if (color) {
-          const cubeMesh = cubes.current[i].children[0] as THREE.Mesh;
+  // useEffect(() => {
+  //   console.log({ rubiks });
+  //   for (let i = 0; i < rubiks.length; i++) {
+  //     Object.entries(rubiks[i]).forEach(([side, color]) => {
+  //       if (color) {
+  //         const cubeMesh = cubes.current[i].children[0] as THREE.Mesh;
 
-          const mat = (cubeMesh.material as THREE.MeshLambertMaterial[])[
-            Number(side)
-          ];
+  //         const mat = (cubeMesh.material as THREE.MeshLambertMaterial[])[Number(side)];
 
-          const colorToSet = colorMapThree[color];
-          mat.color = colorToSet;
-          mat.emissive = colorToSet;
-        }
-      });
-    }
-  }, [rubiks]);
+  //         const colorToSet = colorMapThree[color];
+  //         mat.color = colorToSet;
+  //         mat.emissive = colorToSet;
+  //       }
+  //     });
+  //   }
+  // }, [rubiks]);
 
   useEffect(() => {
     if (inited.current) return;
@@ -73,10 +66,10 @@ function CubeVisualization({ rubiks }: IProps) {
     scene.background = new THREE.Color("gainsboro");
     // scene.background = new THREE.Color("red");
 
-    const ambientLight = new THREE.AmbientLight("white", 5);
+    const ambientLight = new THREE.AmbientLight("white", 4);
     scene.add(ambientLight);
 
-    const light = new THREE.DirectionalLight("white", 4);
+    const light = new THREE.DirectionalLight("white", 0.2);
     light.position.set(1, 1, 1);
     scene.add(light);
 
@@ -87,14 +80,20 @@ function CubeVisualization({ rubiks }: IProps) {
     camera.position.set(0, 5, 10);
     camera.lookAt(scene.position);
 
+    const bloomParams = {
+      threshold: 1.3,
+      strength: 0.162,
+      radius: 0.02,
+      exposure: 1.2768,
+    };
+
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = Math.pow(1.2768, 4.0);
+    renderer.toneMappingExposure = Math.pow(bloomParams.exposure, 4.0);
     // renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    refContainer.current &&
-      refContainer.current.appendChild(renderer.domElement);
+    refContainer.current && refContainer.current.appendChild(renderer.domElement);
 
     // const geometry = new THREE.BoxGeometry(1, 1, 1);
     // const material = new THREE.MeshBasicMaterial();
@@ -116,18 +115,12 @@ function CubeVisualization({ rubiks }: IProps) {
 
     // Set up post-processing
 
-    const outlinePass = new OutlinePass(
-      new THREE.Vector2(width, height),
-      scene,
-      camera
-    );
+    const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
+    outlinePass.edgeStrength = 6; // Increase the edge strength for a more visible outline
+    outlinePass.edgeThickness = 2; // Increase the edge thickness for a more visible outline
+    // outlinePass.visibleEdgeColor.set("#ff0000"); // Set the color of the visible edges
+    // outlinePass.hiddenEdgeColor.set("#000000"); // Set the color of the hidden edges
 
-    const bloomParams = {
-      threshold: 1.3,
-      strength: 0.162,
-      radius: 0.02,
-      exposure: 1,
-    };
     // const bloomParams = {
     //   threshold: 0.73,
     //   strength: 0.345,
@@ -135,12 +128,7 @@ function CubeVisualization({ rubiks }: IProps) {
     //   exposure: 1,
     // };
 
-    const bloomPass = new UnrealBloomPass(
-      new THREE.Vector2(width, height),
-      2,
-      1,
-      1
-    );
+    const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 2, 1, 1);
     // const bloomPass = new UnrealBloomPass(
     //   new THREE.Vector2(width, height),
     //   1.5, // strength
@@ -161,11 +149,14 @@ function CubeVisualization({ rubiks }: IProps) {
     });
     target.samples = 8;
     const composer = new EffectComposer(renderer, target);
+    // composer.renderTarget1.texture.colorSpace = THREE.SRGBColorSpace;
+    // composer.renderTarget2.texture.colorSpace = THREE.SRGBColorSpace;
 
     composer.addPass(new RenderPass(scene, camera));
     composer.addPass(new ShaderPass(GammaCorrectionShader));
     // Setting threshold to 1 will make sure nothing glows
     composer.addPass(bloomPass);
+    composer.addPass(outlinePass);
     // composer.addPass(outputPass);
 
     const outputPass = new OutputPass();
@@ -174,22 +165,27 @@ function CubeVisualization({ rubiks }: IProps) {
 
     for (let x = 0; x < 3; x++) {
       for (let y = 0; y < 3; y++) {
-        const idx = getIdxByPos(getCubePosByFace("right", { x, y }));
+        const idx = getIdxByPos(getCubePosBySide("R", { x, y }));
         // toGlow.push(cubes.current[idx]);
-        const cubeMesh = cubes.current[idx].children[0] as THREE.Mesh;
+        const group = cubes.current[idx];
+        outlinePass.selectedObjects.push(group);
 
-        (cubeMesh.material as THREE.MeshLambertMaterial[]).forEach((m) => {
-          const colorHex = m.color.getHexString();
-          if (colorHex === colorMapThree.inside.getHexString()) return;
+        const stickers = group.children.slice(1);
 
-          // if (colorHex === colorMapThree.Y.getHexString())
-          //   m.emissiveIntensity = 2;
-          // else if (colorHex === colorMapThree.R.getHexString())
-          //   m.emissiveIntensity = 100;
-          // else if (colorHex === colorMapThree.G.getHexString())
-          //   m.emissiveIntensity = 4;
-          m.emissiveIntensity = 4;
-        });
+        (stickers as THREE.Mesh<THREE.ExtrudeGeometry, THREE.MeshStandardMaterial, THREE.Object3DEventMap>[]).forEach(
+          (st) => {
+            const colorHex = st.material.color.getHexString();
+            if (colorHex === colorMapThree.X.getHexString()) return;
+
+            // if (colorHex === colorMapThree.Y.getHexString())
+            //   m.emissiveIntensity = 2;
+            // else if (colorHex === colorMapThree.R.getHexString())
+            //   m.emissiveIntensity = 100;
+            // else if (colorHex === colorMapThree.G.getHexString())
+            //   m.emissiveIntensity = 4;
+            st.material.emissiveIntensity = 100;
+          }
+        );
         // cubeMesh.layers.enable(BLOOM_SCENE);
         // outlinePass.selectedObjects.push(cubeMesh);
       }
@@ -200,11 +196,9 @@ function CubeVisualization({ rubiks }: IProps) {
 
     const bloomFolder = gui.addFolder("bloom");
 
-    bloomFolder
-      .add(bloomParams, "threshold", 0.0, 1.0)
-      .onChange(function (value) {
-        bloomPass.threshold = Number(value);
-      });
+    bloomFolder.add(bloomParams, "threshold", 0.0, 1.0).onChange(function (value) {
+      bloomPass.threshold = Number(value);
+    });
 
     bloomFolder.add(bloomParams, "strength", 0.0, 3).onChange(function (value) {
       bloomPass.strength = Number(value);
@@ -219,11 +213,9 @@ function CubeVisualization({ rubiks }: IProps) {
 
     const toneMappingFolder = gui.addFolder("tone mapping");
 
-    toneMappingFolder
-      .add(bloomParams, "exposure", 0.1, 2)
-      .onChange(function (value) {
-        renderer.toneMappingExposure = Math.pow(value, 4.0);
-      });
+    toneMappingFolder.add(bloomParams, "exposure", 0.1, 2).onChange(function (value) {
+      renderer.toneMappingExposure = Math.pow(value, 4.0);
+    });
 
     /*      function animate() {
       requestAnimationFrame(animate);
@@ -249,24 +241,24 @@ function CubeVisualization({ rubiks }: IProps) {
       // finalComposer.render();
     }
 
-    function darkenNonBloomed(obj: THREE.Object3D) {
-      if ((obj as THREE.Mesh).isMesh && bloomLayer.test(obj.layers) === false) {
-        // @ts-ignore
-        materials[obj.uuid] = obj.material;
-        // @ts-ignore
-        obj.material = darkMaterial;
-      }
-    }
+    // function darkenNonBloomed(obj: THREE.Object3D) {
+    //   if ((obj as THREE.Mesh).isMesh && bloomLayer.test(obj.layers) === false) {
+    //     // @ts-ignore
+    //     materials[obj.uuid] = obj.material;
+    //     // @ts-ignore
+    //     obj.material = darkMaterial;
+    //   }
+    // }
 
-    function restoreMaterial(obj: THREE.Object3D) {
-      // @ts-ignore
-      if (materials[obj.uuid]) {
-        // @ts-ignore
-        obj.material = materials[obj.uuid];
-        // @ts-ignore
-        delete materials[obj.uuid];
-      }
-    }
+    // function restoreMaterial(obj: THREE.Object3D) {
+    //   // @ts-ignore
+    //   if (materials[obj.uuid]) {
+    //     // @ts-ignore
+    //     obj.material = materials[obj.uuid];
+    //     // @ts-ignore
+    //     delete materials[obj.uuid];
+    //   }
+    // }
 
     /*
     function onWindowResize() {
