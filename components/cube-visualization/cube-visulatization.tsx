@@ -3,7 +3,12 @@
 import * as THREE from "three";
 
 import { useEffect, useRef } from "react";
-import { cubeColorMap, getIdxByPos, getPosByIdx } from "@/helpers/helper";
+import {
+  colorMapThree,
+  cubeColorMap,
+  getIdxByPos,
+  getPosByIdx,
+} from "@/helpers/helper";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { IRubiks } from "@/helpers/types";
@@ -17,6 +22,7 @@ import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPa
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
+import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader.js";
 // import { GlitchPass } from "three/addons/postprocessing/GlitchPass.js";
 // import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
 
@@ -38,14 +44,13 @@ function CubeVisualization({ rubiks }: IProps) {
         if (color) {
           const cubeMesh = cubes.current[i].children[0] as THREE.Mesh;
 
-          (cubeMesh.material as THREE.MeshLambertMaterial[])[
+          const mat = (cubeMesh.material as THREE.MeshLambertMaterial[])[
             Number(side)
-          ].color.setHex(
-            parseInt(
-              cubeColorMap[color as keyof typeof cubeColorMap].slice(1),
-              16
-            )
-          );
+          ];
+
+          const colorToSet = colorMapThree[color];
+          mat.color = colorToSet;
+          mat.emissive = colorToSet;
         }
       });
     }
@@ -55,10 +60,10 @@ function CubeVisualization({ rubiks }: IProps) {
     if (inited.current) return;
     inited.current = true;
 
-    const BLOOM_SCENE = 1;
+    // const BLOOM_SCENE = 1;
 
-    const bloomLayer = new THREE.Layers();
-    bloomLayer.set(BLOOM_SCENE);
+    // const bloomLayer = new THREE.Layers();
+    // bloomLayer.set(BLOOM_SCENE);
 
     const darkMaterial = new THREE.MeshLambertMaterial({ color: "black" });
     const materials = {};
@@ -84,10 +89,10 @@ function CubeVisualization({ rubiks }: IProps) {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ReinhardToneMapping;
-    // renderer.toneMappingExposure = Math.pow(1.5, 3.0);
-    // document.body.appendChild( renderer.domElement );
-    // use ref as a mount point of the Three.js scene instead of the document.body
+    renderer.toneMappingExposure = Math.pow(1.2768, 4.0);
+    // renderer.toneMapping = THREE.ACESFilmicToneMapping;
     refContainer.current &&
       refContainer.current.appendChild(renderer.domElement);
 
@@ -109,8 +114,6 @@ function CubeVisualization({ rubiks }: IProps) {
     // Load cubes into the scene
     cubes.current.forEach((cube) => scene.add(cube));
 
-    const renderPass = new RenderPass(scene, camera);
-
     // Set up post-processing
 
     const outlinePass = new OutlinePass(
@@ -120,61 +123,54 @@ function CubeVisualization({ rubiks }: IProps) {
     );
 
     const bloomParams = {
-      threshold: 0.73,
-      strength: 0.345,
-      radius: 0.23,
+      threshold: 1.3,
+      strength: 0.162,
+      radius: 0.02,
       exposure: 1,
     };
+    // const bloomParams = {
+    //   threshold: 0.73,
+    //   strength: 0.345,
+    //   radius: 0.23,
+    //   exposure: 1,
+    // };
 
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(width, height),
-      1.5, // strength
-      0.4, // radius
-      0.85 // threshold
+      2,
+      1,
+      1
     );
+    // const bloomPass = new UnrealBloomPass(
+    //   new THREE.Vector2(width, height),
+    //   1.5, // strength
+    //   0.4, // radius
+    //   0.85 // threshold
+    // );
     bloomPass.threshold = bloomParams.threshold;
     bloomPass.strength = bloomParams.strength;
     bloomPass.radius = bloomParams.radius;
 
-    const bloomComposer = new EffectComposer(renderer);
-    bloomComposer.renderToScreen = false;
-    bloomComposer.addPass(renderPass);
-    bloomComposer.addPass(bloomPass);
-    bloomComposer.addPass(outlinePass);
+    // const outputPass = new OutputPass();
 
-    const mixPass = new ShaderPass(
-      new THREE.ShaderMaterial({
-        uniforms: {
-          baseTexture: { value: null },
-          bloomTexture: { value: bloomComposer.renderTarget2.texture },
-        },
-        vertexShader: document.getElementById("vertexshader")
-          ?.textContent as any,
-        fragmentShader: document.getElementById("fragmentshader")
-          ?.textContent as any,
-        defines: {},
-      }),
-      "baseTexture"
-    );
-    mixPass.needsSwap = true;
+    const target = new THREE.WebGLRenderTarget(width, height, {
+      type: THREE.HalfFloatType,
+      format: THREE.RGBAFormat,
+      colorSpace: THREE.SRGBColorSpace,
+      // colorSpace: THREE.sRGBEncoding,
+    });
+    target.samples = 8;
+    const composer = new EffectComposer(renderer, target);
+
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(new ShaderPass(GammaCorrectionShader));
+    // Setting threshold to 1 will make sure nothing glows
+    composer.addPass(bloomPass);
+    // composer.addPass(outputPass);
 
     const outputPass = new OutputPass();
 
-    const finalComposer = new EffectComposer(renderer);
-    finalComposer.addPass(renderPass);
-    finalComposer.addPass(mixPass);
-    finalComposer.addPass(outputPass);
-
-    // Make all cubes glow
-    // outlinePass.selectedObjects = cubes.current
-    //   .slice(0, 3)
-    //   .map((cubeGroup) => cubeGroup.children[0]);
-
-    // scene.traverse((obj) => {
-    //   if (obj instanceof THREE.Mesh) {
-    //     obj.material = Array(6).fill(darkMaterial);
-    //   }
-    // });
+    composer.addPass(outputPass);
 
     for (let x = 0; x < 3; x++) {
       for (let y = 0; y < 3; y++) {
@@ -182,6 +178,18 @@ function CubeVisualization({ rubiks }: IProps) {
         // toGlow.push(cubes.current[idx]);
         const cubeMesh = cubes.current[idx].children[0] as THREE.Mesh;
 
+        (cubeMesh.material as THREE.MeshLambertMaterial[]).forEach((m) => {
+          const colorHex = m.color.getHexString();
+          if (colorHex === colorMapThree.inside.getHexString()) return;
+
+          // if (colorHex === colorMapThree.Y.getHexString())
+          //   m.emissiveIntensity = 2;
+          // else if (colorHex === colorMapThree.R.getHexString())
+          //   m.emissiveIntensity = 100;
+          // else if (colorHex === colorMapThree.G.getHexString())
+          //   m.emissiveIntensity = 4;
+          m.emissiveIntensity = 4;
+        });
         // cubeMesh.layers.enable(BLOOM_SCENE);
         // outlinePass.selectedObjects.push(cubeMesh);
       }
@@ -230,13 +238,15 @@ function CubeVisualization({ rubiks }: IProps) {
     function render() {
       requestAnimationFrame(render);
 
-      scene.traverse(darkenNonBloomed);
-      bloomComposer.render();
-      scene.traverse(restoreMaterial);
+      // scene.traverse(darkenNonBloomed);
+      // bloomComposer.render();
+      // scene.traverse(restoreMaterial);
       controls.update();
+      composer.render();
+      // renderer.render(scene, camera);
 
       // render the entire scene, then render bloom scene on top
-      finalComposer.render();
+      // finalComposer.render();
     }
 
     function darkenNonBloomed(obj: THREE.Object3D) {
