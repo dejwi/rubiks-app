@@ -53,20 +53,10 @@ function CubeVisualization({ cube }: IProps) {
     if (inited.current) return;
     inited.current = true;
 
-    // const BLOOM_SCENE = 1;
-
-    // const bloomLayer = new THREE.Layers();
-    // bloomLayer.set(BLOOM_SCENE);
-
-    const darkMaterial = new THREE.MeshLambertMaterial({ color: "black" });
-    const materials = {};
-
     // === THREE.JS CODE START ===
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color("gainsboro");
-    // scene.background = new THREE.Color("red");
 
-    const ambientLight = new THREE.AmbientLight("white", 4);
+    const ambientLight = new THREE.AmbientLight("white", 2);
     scene.add(ambientLight);
 
     const light = new THREE.DirectionalLight("white", 0.2);
@@ -84,22 +74,18 @@ function CubeVisualization({ cube }: IProps) {
       threshold: 1.3,
       strength: 0.162,
       radius: 0.02,
-      exposure: 1.2768,
+      exposure: 1,
+      // exposure: 1.2768,
     };
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor(new THREE.Color("gainsboro"));
     renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ReinhardToneMapping;
     renderer.toneMappingExposure = Math.pow(bloomParams.exposure, 4.0);
-    // renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
     refContainer.current && refContainer.current.appendChild(renderer.domElement);
-
-    // const geometry = new THREE.BoxGeometry(1, 1, 1);
-    // const material = new THREE.MeshBasicMaterial();
-    // const cube = new THREE.Mesh(geometry, material);
-    // scene.add(cube);
-    // camera.position.z = 5;
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
@@ -114,59 +100,37 @@ function CubeVisualization({ cube }: IProps) {
     cubes.current.forEach((cube) => scene.add(cube));
 
     // Set up post-processing
-
     const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
     outlinePass.edgeStrength = 6; // Increase the edge strength for a more visible outline
     outlinePass.edgeThickness = 2; // Increase the edge thickness for a more visible outline
-    // outlinePass.visibleEdgeColor.set("#ff0000"); // Set the color of the visible edges
-    // outlinePass.hiddenEdgeColor.set("#000000"); // Set the color of the hidden edges
-
-    // const bloomParams = {
-    //   threshold: 0.73,
-    //   strength: 0.345,
-    //   radius: 0.23,
-    //   exposure: 1,
-    // };
 
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 2, 1, 1);
-    // const bloomPass = new UnrealBloomPass(
-    //   new THREE.Vector2(width, height),
-    //   1.5, // strength
-    //   0.4, // radius
-    //   0.85 // threshold
-    // );
     bloomPass.threshold = bloomParams.threshold;
     bloomPass.strength = bloomParams.strength;
     bloomPass.radius = bloomParams.radius;
 
-    // const outputPass = new OutputPass();
-
     const target = new THREE.WebGLRenderTarget(width, height, {
-      type: THREE.HalfFloatType,
+      type: THREE.FloatType,
+      // type: THREE.HalfFloatType,
       format: THREE.RGBAFormat,
       colorSpace: THREE.SRGBColorSpace,
-      // colorSpace: THREE.sRGBEncoding,
     });
     target.samples = 8;
     const composer = new EffectComposer(renderer, target);
-    // composer.renderTarget1.texture.colorSpace = THREE.SRGBColorSpace;
-    // composer.renderTarget2.texture.colorSpace = THREE.SRGBColorSpace;
 
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new ShaderPass(GammaCorrectionShader));
+
     // Setting threshold to 1 will make sure nothing glows
+    composer.addPass(new ShaderPass(GammaCorrectionShader));
     composer.addPass(bloomPass);
     composer.addPass(outlinePass);
-    // composer.addPass(outputPass);
 
     const outputPass = new OutputPass();
-
     composer.addPass(outputPass);
 
     for (let x = 0; x < 3; x++) {
       for (let y = 0; y < 3; y++) {
         const idx = getIdxByPos(getCubePosBySide("R", { x, y }));
-        // toGlow.push(cubes.current[idx]);
         const group = cubes.current[idx];
         outlinePass.selectedObjects.push(group);
 
@@ -177,21 +141,23 @@ function CubeVisualization({ cube }: IProps) {
             const colorHex = st.material.color.getHexString();
             if (colorHex === colorMapThree.X.getHexString()) return;
 
-            // if (colorHex === colorMapThree.Y.getHexString())
-            //   m.emissiveIntensity = 2;
-            // else if (colorHex === colorMapThree.R.getHexString())
-            //   m.emissiveIntensity = 100;
-            // else if (colorHex === colorMapThree.G.getHexString())
-            //   m.emissiveIntensity = 4;
-            st.material.emissiveIntensity = 100;
+            const intMap = {
+              [colorMapThree.D.getHexString()]: 2,
+              [colorMapThree.U.getHexString()]: 2,
+              [colorMapThree.F.getHexString()]: 4,
+              [colorMapThree.B.getHexString()]: 2,
+              [colorMapThree.L.getHexString()]: 2,
+              [colorMapThree.R.getHexString()]: 5,
+            };
+            st.material.emissiveIntensity = intMap[colorHex] || 2;
+
+            // st.material.emissiveIntensity = 2;
           }
         );
-        // cubeMesh.layers.enable(BLOOM_SCENE);
         // outlinePass.selectedObjects.push(cubeMesh);
       }
     }
 
-    // gui
     const gui = new GUI();
 
     const bloomFolder = gui.addFolder("bloom");
@@ -217,48 +183,12 @@ function CubeVisualization({ cube }: IProps) {
       renderer.toneMappingExposure = Math.pow(value, 4.0);
     });
 
-    /*      function animate() {
-      requestAnimationFrame(animate);
-
-      controls.update(); // only required if controls.enableDamping = true, or if controls.autoRotate = true
-
-      bloomComposer.render();
-      finalComposer.render();
-      // renderer.render(scene, camera);
-    }*/
-
     function render() {
       requestAnimationFrame(render);
 
-      // scene.traverse(darkenNonBloomed);
-      // bloomComposer.render();
-      // scene.traverse(restoreMaterial);
       controls.update();
       composer.render();
-      // renderer.render(scene, camera);
-
-      // render the entire scene, then render bloom scene on top
-      // finalComposer.render();
     }
-
-    // function darkenNonBloomed(obj: THREE.Object3D) {
-    //   if ((obj as THREE.Mesh).isMesh && bloomLayer.test(obj.layers) === false) {
-    //     // @ts-ignore
-    //     materials[obj.uuid] = obj.material;
-    //     // @ts-ignore
-    //     obj.material = darkMaterial;
-    //   }
-    // }
-
-    // function restoreMaterial(obj: THREE.Object3D) {
-    //   // @ts-ignore
-    //   if (materials[obj.uuid]) {
-    //     // @ts-ignore
-    //     obj.material = materials[obj.uuid];
-    //     // @ts-ignore
-    //     delete materials[obj.uuid];
-    //   }
-    // }
 
     /*
     function onWindowResize() {
@@ -274,7 +204,6 @@ function CubeVisualization({ cube }: IProps) {
     window.addEventListener("resize", onWindowResize);
     */
     render();
-    // animate();
   }, []);
   return (
     <div>
