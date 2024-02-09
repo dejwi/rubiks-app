@@ -3,51 +3,89 @@
 import * as THREE from "three";
 
 import { useEffect, useRef } from "react";
-import { colorMapThree, cubeColorMap, getIdxByPos, getPosByIdx } from "@/helpers/helper";
+import { colorMapThree, getIdxByPos } from "@/helpers/helper";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { genEmptyThreeCube } from "./empty-cube2";
+import { genEmptyThreeCube } from "./gen-empty-cube";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
-import { getCubePosByFace } from "@/helpers/fill-cube-face";
-import { BloomPass } from "three/examples/jsm/postprocessing/BloomPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { ShaderPass } from "three/examples/jsm/postprocessing/ShaderPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader.js";
 import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
-// import { GlitchPass } from "three/addons/postprocessing/GlitchPass.js";
-// import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { ICubeSide } from "@/helpers/types";
+import { useAppStore } from "@/helpers/store";
 
-const CUBE_SIZE = 1;
+// interface IProps {
+//   cube: string;
+//   highlight?: ICubeSide;
+// }
 
-interface IProps {
-  cube: string;
-}
-
-function CubeVisualization({ cube }: IProps) {
-  const cubes = useRef(genEmptyThreeCube()[0]);
+function CubeVisualization() {
+  const { cube, highlight } = useAppStore();
+  const objects = useRef(genEmptyThreeCube());
+  const outline_selection = useRef<THREE.Object3D<THREE.Object3DEventMap>[]>([]);
   const refContainer = useRef<HTMLDivElement>(null);
   const inited = useRef(false);
 
-  // useEffect(() => {
-  //   console.log({ rubiks });
-  //   for (let i = 0; i < rubiks.length; i++) {
-  //     Object.entries(rubiks[i]).forEach(([side, color]) => {
-  //       if (color) {
-  //         const cubeMesh = cubes.current[i].children[0] as THREE.Mesh;
+  useEffect(() => {
+    if (cube.length !== 54) return;
+    for (let i = 0; i < 54; i++) {
+      const sticker = objects.current[1][i];
+      const color = cube[i];
 
-  //         const mat = (cubeMesh.material as THREE.MeshLambertMaterial[])[Number(side)];
+      sticker.material.opacity = color === "X" ? 0 : 1;
+      if (color !== "X") {
+        sticker.material.color = colorMapThree[color as ICubeSide];
+        sticker.material.emissive = colorMapThree[color as ICubeSide];
+      }
+    }
+  }, [cube]);
 
-  //         const colorToSet = colorMapThree[color];
-  //         mat.color = colorToSet;
-  //         mat.emissive = colorToSet;
-  //       }
-  //     });
-  //   }
-  // }, [rubiks]);
+  useEffect(() => {
+    // Empty an array without losing a reference
+    outline_selection.current.length = 0;
+    if (!highlight) return;
+
+    const colored: THREE.Mesh<THREE.ExtrudeGeometry, THREE.MeshStandardMaterial, THREE.Object3DEventMap>[] = [];
+    for (let x = 0; x < 3; x++) {
+      for (let y = 0; y < 3; y++) {
+        const idx = getIdxByPos(getCubePosBySide(highlight, { x, y }));
+        const group = objects.current[0][idx];
+        const stickers = group.children.slice(1);
+
+        outline_selection.current.push(group);
+
+        (stickers as THREE.Mesh<THREE.ExtrudeGeometry, THREE.MeshStandardMaterial, THREE.Object3DEventMap>[]).forEach(
+          (st) => {
+            const colorHex = st.material.color.getHexString();
+            if (colorHex === colorMapThree.X.getHexString()) return;
+
+            const intMap = {
+              [colorMapThree.D.getHexString()]: 2,
+              [colorMapThree.U.getHexString()]: 2,
+              [colorMapThree.F.getHexString()]: 4,
+              [colorMapThree.B.getHexString()]: 2,
+              [colorMapThree.L.getHexString()]: 2,
+              [colorMapThree.R.getHexString()]: 5,
+            };
+            st.material.emissiveIntensity = intMap[colorHex] || 2;
+
+            colored.push(st);
+          }
+        );
+      }
+    }
+
+    // Clean up bloom effect
+    return () =>
+      colored.forEach((st) => {
+        st.material.emissiveIntensity = 0;
+      });
+  }, [highlight]);
 
   useEffect(() => {
     if (inited.current) return;
@@ -97,12 +135,13 @@ function CubeVisualization({ cube }: IProps) {
     // controls.maxPolarAngle = Math.PI / 2;
 
     // Load cubes into the scene
-    cubes.current.forEach((cube) => scene.add(cube));
+    objects.current[0].forEach((group) => scene.add(group));
 
     // Set up post-processing
     const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
     outlinePass.edgeStrength = 6; // Increase the edge strength for a more visible outline
     outlinePass.edgeThickness = 2; // Increase the edge thickness for a more visible outline
+    outlinePass.selectedObjects = outline_selection.current;
 
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(width, height), 2, 1, 1);
     bloomPass.threshold = bloomParams.threshold;
@@ -127,36 +166,6 @@ function CubeVisualization({ cube }: IProps) {
 
     const outputPass = new OutputPass();
     composer.addPass(outputPass);
-
-    for (let x = 0; x < 3; x++) {
-      for (let y = 0; y < 3; y++) {
-        const idx = getIdxByPos(getCubePosBySide("R", { x, y }));
-        const group = cubes.current[idx];
-        outlinePass.selectedObjects.push(group);
-
-        const stickers = group.children.slice(1);
-
-        (stickers as THREE.Mesh<THREE.ExtrudeGeometry, THREE.MeshStandardMaterial, THREE.Object3DEventMap>[]).forEach(
-          (st) => {
-            const colorHex = st.material.color.getHexString();
-            if (colorHex === colorMapThree.X.getHexString()) return;
-
-            const intMap = {
-              [colorMapThree.D.getHexString()]: 2,
-              [colorMapThree.U.getHexString()]: 2,
-              [colorMapThree.F.getHexString()]: 4,
-              [colorMapThree.B.getHexString()]: 2,
-              [colorMapThree.L.getHexString()]: 2,
-              [colorMapThree.R.getHexString()]: 5,
-            };
-            st.material.emissiveIntensity = intMap[colorHex] || 2;
-
-            // st.material.emissiveIntensity = 2;
-          }
-        );
-        // outlinePass.selectedObjects.push(cubeMesh);
-      }
-    }
 
     const gui = new GUI();
 

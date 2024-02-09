@@ -1,9 +1,6 @@
-import { IFaceColor } from "./types";
+import { ICubeSide } from "./types";
 
-export const colorScanMap: Record<
-  NonNullable<IFaceColor>,
-  { H: [number, number]; S: [number, number]; V: [number, number] }[]
-> = {
+export const colorScanMap: Record<string, { H: [number, number]; S: [number, number]; V: [number, number] }[]> = {
   W: [
     {
       H: [0, 360],
@@ -71,4 +68,13 @@ export const colorScanMap: Record<
       V: [0, 100],
     },
   ],
+};
+
+export const scannedColorToSide: Record<string, ICubeSide> = {
+  W: "D",
+  O: "B",
+  Y: "U",
+  G: "R",
+  R: "F",
+  B: "L",
 };

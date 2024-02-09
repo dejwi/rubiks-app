@@ -1,10 +1,8 @@
-export type IFaceColor = "W" | "G" | "R" | "O" | "Y" | "B" | null;
-
-export type IRubiks = Record<string, IFaceColor>[];
+export type ICubeSide = "U" | "R" | "F" | "D" | "L" | "B" | "X";
 
 export type IFaces = "front" | "top" | "back" | "bottom" | "left" | "right";
 
 export type IScanResult = {
-  faceColor: IFaceColor;
+  destSide: ICubeSide;
   scanData: Uint8ClampedArray;
 }[];

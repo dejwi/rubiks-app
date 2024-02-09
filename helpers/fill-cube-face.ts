@@ -5,7 +5,7 @@ import { reverseCord } from "./helper";
 export const getCubePosByFace = (
   face: IFaces,
   facePos: { x: number; y: number },
-) => {
+): THREE.Vector3 => {
   const cubePos = new THREE.Vector3(0, 0, 0);
 
   switch (face) {
