@@ -17,9 +17,8 @@ import { ICubeSide } from "@/helpers/types";
 import { Toggle } from "../ui/toggle";
 
 export function CubeDevTools() {
-  const { cube, highlight, updateStore } = useAppStore();
+  const { cube, highlight, updateStore, updateCube } = useAppStore();
   const toggles = useAppStore((state) => ({
-    scanComplete: state.scanComplete,
     scanReversed: state.scanReversed,
     previewReversed: state.previewReversed,
     devScanPreviewRefresh: state.devScanPreviewRefresh,
@@ -38,8 +37,8 @@ export function CubeDevTools() {
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Cube</Label>
-            <Input className="col-span-2" value={cube} onChange={(e) => updateStore({ cube: e.target.value })} />
-            <Button variant="outline" onClick={() => updateStore({ cube: solved_cube })}>
+            <Input className="col-span-2" value={cube} onChange={(e) => updateCube(e.target.value)} />
+            <Button variant="outline" onClick={() => updateCube(solved_cube)}>
               Set solved
             </Button>
           </div>

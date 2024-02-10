@@ -15,8 +15,17 @@ const MainPage = () => {
   const video = useRef<HTMLVideoElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const [streamStared, setStreamStarted] = useState(false);
-  const { cube, currentScanFace, scanReversed, previewReversed, scanSize, updateStore, deviceId, devScanPreviewShow } =
-    useAppStore();
+  const {
+    cube,
+    currentScanFace,
+    scanReversed,
+    previewReversed,
+    scanSize,
+    updateStore,
+    deviceId,
+    devScanPreviewShow,
+    updateCube,
+  } = useAppStore();
 
   const getScannedColors = useGetScannedColors({ video, canvas });
 
@@ -35,6 +44,7 @@ const MainPage = () => {
     video.current?.pause();
   };
   const onScan = () => {
+    if (currentScanFace === null) return;
     const tempCube = cube.split("");
     getScannedColors()?.forEach(({ destSide }, i) => {
       const idx = cube_sides.indexOf(cube_sides_scan[currentScanFace]) * 9 + i;
@@ -42,11 +52,11 @@ const MainPage = () => {
       tempCube[idx] = destSide;
     });
 
-    updateStore({ cube: tempCube.join("") });
+    updateCube(tempCube.join(""));
     if (currentScanFace === cube_sides_scan.length - 1) {
-      updateStore({ scanComplete: true, highlight: undefined });
+      updateStore({ currentScanFace: null });
     } else {
-      updateStore({ currentScanFace: currentScanFace + 1, highlight: cube_sides_scan[currentScanFace + 1] });
+      updateStore({ currentScanFace: currentScanFace + 1 });
     }
   };
 

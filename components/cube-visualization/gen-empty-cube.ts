@@ -91,7 +91,7 @@ export const genEmptyThreeCube = () => {
       const sticker = new THREE.Mesh(
         stickerGeometry,
         new THREE.MeshStandardMaterial({
-          // color: colorMapThree[side],
+          color: colorMapThree.X,
           // emissive: colorMapThree[side],
           transparent: true,
           opacity: 0,
@@ -134,5 +134,5 @@ export const genEmptyThreeCube = () => {
       stickers.push(sticker);
     }
   }
-  return [cubes, stickers] as const;
+  return {cubes, stickers, orgStickerPos: stickers.map((sticker) => sticker.position.clone())};
 };
