@@ -5,7 +5,7 @@ export const colorScanMap: Record<string, { H: [number, number]; S: [number, num
     {
       H: [0, 360],
       S: [0, 15],
-      V: [80, 100],
+      V: [64, 100],
     },
   ],
   O: [

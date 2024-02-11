@@ -3,10 +3,9 @@
 import * as THREE from "three";
 
 import { useEffect, useRef } from "react";
-import { colorMapThree, cube_sides, cube_sides_scan, getIdxByPos } from "@/helpers/helper";
+import { colorMapThree, getIdxByPos } from "@/helpers/helper";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { genEmptyThreeCube } from "./gen-empty-cube";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
@@ -16,149 +15,19 @@ import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import GUI from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { GammaCorrectionShader } from "three/examples/jsm/shaders/GammaCorrectionShader.js";
 import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
-import { ICubeSide } from "@/helpers/types";
 import { useAppStore } from "@/helpers/store";
-import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ghostSideAnimationSettings } from "./animation-settings";
-
-// interface IProps {
-//   cube: string;
-//   highlight?: ICubeSide;
-// }
+import { cameraPositions } from "@/helpers/camera-positions";
 
 function CubeVisualization() {
-  const { highlight, objects, cube, currentScanFace } = useAppStore();
-  // const objects = useRef(genEmptyThreeCube());
+  const {
+    highlight,
+    objects,
+    camera: { current: camera },
+  } = useAppStore();
   const outline_selection = useRef<THREE.Object3D<THREE.Object3DEventMap>[]>([]);
   const refContainer = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene>();
   const inited = useRef(false);
-  const timeline = useRef<gsap.core.Timeline | null>(null);
-  // const prevGhostStickers = useRef<
-  //   {
-  //     sticker: THREE.Mesh<THREE.ExtrudeGeometry, THREE.MeshStandardMaterial, THREE.Object3DEventMap>;
-  //     orgPos: THREE.Vector3;
-  //   }[]
-  // >([]);
-
-  useEffect(() => {
-    const { baseOffset, baseOpacity, color, delayBy, duration, endOffset, endOpacity } = ghostSideAnimationSettings;
-
-    // Stop the previous timeline if it exists
-    if (timeline.current) {
-      timeline.current.kill();
-    }
-
-    // Create a new timeline
-    timeline.current = gsap.timeline();
-
-    if (currentScanFace !== 0) {
-      const prevScanFace = cube_sides_scan[(currentScanFace ?? cube_sides_scan.length) - 1];
-
-      for (let i = 0; i < 9; i++) {
-        // Set position to previously animated stickers
-        const stickerIdx = cube_sides.indexOf(prevScanFace) * 9 + i;
-
-        const prevGhostSticker = objects.current.stickers[stickerIdx];
-        const orgPos = objects.current.orgStickerPos[stickerIdx];
-
-        const newColor = colorMapThree[cube[stickerIdx] as ICubeSide];
-
-        gsap.to(prevGhostSticker.position, {
-          x: orgPos.x,
-          y: orgPos.y,
-          z: orgPos.z,
-          opacity: 1,
-          duration: 0.05,
-          ease: "power1.inOut",
-          delay: delayBy(i),
-        });
-        gsap.to(prevGhostSticker.material.color, {
-          r: newColor.r,
-          g: newColor.g,
-          b: newColor.b,
-          duration: 0.05,
-          ease: "power1.inOut",
-          delay: delayBy(i),
-        });
-      }
-    }
-
-    if (currentScanFace === null) return;
-
-    const ghostStickerSide = cube_sides_scan[currentScanFace];
-
-    for (let i = 0; i < 9; i++) {
-      const sticker = objects.current.stickers[cube_sides.indexOf(ghostStickerSide) * 9 + i];
-
-      sticker.material.color = color.clone();
-
-      const targetPosition = sticker.position.clone();
-      switch (ghostStickerSide) {
-        case "U":
-          targetPosition.y += endOffset;
-          sticker.position.y += baseOffset;
-          break;
-        case "D":
-          targetPosition.y -= endOffset;
-          sticker.position.y -= baseOffset;
-          break;
-        case "F":
-          targetPosition.z += endOffset;
-          sticker.position.z += baseOffset;
-          break;
-        case "B":
-          targetPosition.z -= endOffset;
-          sticker.position.z -= baseOffset;
-          break;
-        case "R":
-          targetPosition.x += endOffset;
-          sticker.position.x += baseOffset;
-          break;
-        case "L":
-          targetPosition.x -= endOffset;
-          sticker.position.x -= baseOffset;
-          break;
-      }
-
-      // Add the animations to the timeline
-      timeline.current.add(
-        gsap.to(sticker.position, {
-          x: targetPosition.x,
-          y: targetPosition.y,
-          z: targetPosition.z,
-          duration,
-          repeat: -1,
-          yoyo: true,
-          ease: "power1.in",
-          delay: delayBy(i),
-        }),
-        0
-      );
-      const comp = () => {
-        timeline.current?.add(
-          gsap.to(sticker.material, {
-            opacity: endOpacity,
-            duration,
-            repeat: -1,
-            yoyo: true,
-            ease: "power1.in",
-            delay: delayBy(i),
-          }),
-          0
-        );
-      };
-
-      gsap.to(sticker.material, {
-        opacity: baseOpacity,
-        duration: 2,
-        ease: "power1.in",
-        delay: delayBy(i),
-        onComplete: comp,
-      });
-    }
-  }, [currentScanFace]);
 
   useEffect(() => {
     // Empty an array without losing a reference
@@ -218,10 +87,16 @@ function CubeVisualization() {
 
     const width = 500;
     const height = 500;
-    const camera = new THREE.PerspectiveCamera(40, width / height);
 
-    camera.position.set(0, 5, 10);
+    camera.position.set(...cameraPositions[0]);
     camera.lookAt(scene.position);
+
+    // Log camera position on c key down
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "c") {
+        console.log({ pos: camera.position, rot: camera.rotation });
+      }
+    });
 
     const bloomParams = {
       threshold: 1.3,
@@ -232,7 +107,8 @@ function CubeVisualization() {
     };
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setClearColor(new THREE.Color("gainsboro"));
+    // renderer.setClearColor(new THREE.Color("gainsboro"));
+    renderer.setClearColor(new THREE.Color("#c7c7c7"));
     renderer.setSize(width, height);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ReinhardToneMapping;
@@ -329,6 +205,10 @@ function CubeVisualization() {
     window.addEventListener("resize", onWindowResize);
     */
     render();
+
+    // return () => {
+    //   clearInterval(intervalCamera);
+    // };
   }, []);
 
   return (

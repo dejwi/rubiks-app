@@ -143,8 +143,8 @@ const edgeColor = [
 ];
 
 // const fcube: string = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
-const fcube = "BBDUUFFBFULFRRLBBBLRRFFDLRLDUUDDDFDUDLURLUDFBLURBBFRLR";
-const to_cubie_cube = () => {
+// const fcube = "BBDUUFFBFULFRRLBBBLRRFFDLRLDUUDDDFDUDLURLUDFBLURBBFRLR";
+export const fcube_to_ifcube = (fcube: string) => {
   const out_cube = fcube.split("");
   // cc = cubie.CubieCube()
   // cc.cp = [-1] * 8  # invalidate corner and edge permutation
@@ -167,34 +167,9 @@ const to_cubie_cube = () => {
       // # colors of corner j
       const col = cornerColor[j];
       if (col1 == col[1] && col2 == col[2]) {
-        // # we have corner j in corner position i
-        // cc.cp[i] = j
-        // cc.co[i] = ori
         out_cube[fac[(out_ori + 3) % 3]] = cornerFacelet[j][col.indexOf(col[0])].toString();
         out_cube[idx1] = cornerFacelet[j][col.indexOf(col[1])].toString();
         out_cube[idx2] = cornerFacelet[j][col.indexOf(col[2])].toString();
-
-        // console.log({
-        //   idx1,
-        //   idx2,
-        //   idx3: fac[(out_ori + 3) % 3],
-        // });
-
-        // console.log({
-        //  id1: `${idx1} - ${cornerFacelet[j]}`
-        // });
-
-        // console.log({
-        //   i,
-        //   j,
-        //   out_ori,
-        //   col1,
-        //   col2,
-        //   idx1,
-        //   idx2,
-        //   idx3: fac[(out_ori + 3) % 3],
-        //   col,
-        // });
 
         break;
       }
@@ -220,26 +195,5 @@ const to_cubie_cube = () => {
     out_cube[idx] = centerFacelet[cur].toString();
   });
 
-  // for (let i = 0; i < edgeFacelet.length; i++) {
-  //   for (let j = 0; j < edgeFacelet.length; j++) {
-  //     if self.f[edgeFacelet[i][0]] == edgeColor[j][0] and \
-  //     self.f[edgeFacelet[i][1]] == edgeColor[j][1]:
-  // cc.ep[i] = j
-  // cc.eo[i] = 0
-  // break
-  // if self.f[edgeFacelet[i][0]] == edgeColor[j][1] and \
-  //     self.f[edgeFacelet[i][1]] == edgeColor[j][0]:
-  // cc.ep[i] = j
-  // cc.eo[i] = 1
-  // break
-  //   }
-
-  // }
-
-  // return cc
-
-  //
-
-  return out_cube;
+  return out_cube.map((n) => Number(n));
 };
-console.log(to_cubie_cube().map((n) => Number(n)));

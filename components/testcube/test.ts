@@ -602,7 +602,7 @@ const phase4 = (() => {
 // const g4_solution = solve_iddfs2(phase4.solver, phase4.mask(create_ifcube(g4_scramble)), phase4.limit);
 // console.log({ g4_solution });
 
-const solve_thistlethwaite = (cube: number[]) => {
+export const solve_thistlethwaite = (cube: number[]) => {
   let solution = [];
   let phases = [phase1, phase2, phase3, phase4];
   for (const phase of phases) {
@@ -614,18 +614,18 @@ const solve_thistlethwaite = (cube: number[]) => {
   return solution;
 };
 
-const ifcub = [
-  51, 1, 27, 3, 4, 21, 18, 48, 20, 8, 41, 24, 16, 13, 39, 47, 52, 45, 38, 14, 9, 7, 22, 32, 42, 10, 36, 33, 5, 0, 28,
-  31, 34, 26, 30, 2, 35, 37, 6, 12, 40, 19, 29, 25, 53, 44, 46, 17, 50, 49, 23, 11, 43, 15,
-];
-const tt_solution = solve_thistlethwaite(ifcub);
+// const ifcub = [
+//   51, 1, 27, 3, 4, 21, 18, 48, 20, 8, 41, 24, 16, 13, 39, 47, 52, 45, 38, 14, 9, 7, 22, 32, 42, 10, 36, 33, 5, 0, 28,
+//   31, 34, 26, 30, 2, 35, 37, 6, 12, 40, 19, 29, 25, 53, 44, 46, 17, 50, 49, 23, 11, 43, 15,
+// ];
+// const tt_solution = solve_thistlethwaite(ifcub);
 
-console.log({
-  tt_solution,
-  solv: apply_fmoves(ifcub, tt_solution.join(" "))
-    .map((idx) => "URFDLB"[0 | (idx / 9)])
-    .join(""),
-});
+// console.log({
+//   tt_solution,
+//   solv: apply_fmoves(ifcub, tt_solution.join(" "))
+//     .map((idx) => "URFDLB"[0 | (idx / 9)])
+//     .join(""),
+// });
 
 /*
 

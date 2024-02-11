@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { cube_sides, solved_cube } from "@/helpers/helper";
 import { ICubeSide } from "@/helpers/types";
 import { Toggle } from "../ui/toggle";
+import { solveCube } from "@/helpers/solver/solver";
 
 export function CubeDevTools() {
   const { cube, highlight, updateStore, updateCube } = useAppStore();
@@ -74,6 +75,16 @@ export function CubeDevTools() {
                 {key}
               </Toggle>
             ))}
+          </div>
+          <div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                console.log({ solution: solveCube(cube) });
+              }}
+            >
+              Solve cube
+            </Button>
           </div>
         </div>
         <DialogFooter className="sm:justify-start">
