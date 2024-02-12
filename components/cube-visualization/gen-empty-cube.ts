@@ -3,12 +3,12 @@ import { colorMapThree, cube_sides, getIdxByPos, getPosByIdx } from "@/helpers/h
 import * as THREE from "three";
 import { Shape, ExtrudeGeometry } from "three";
 
-const CUBE_SIZE = 1;
+export const CUBE_SIZE = 1;
 const STICKER_SIZE = CUBE_SIZE * 0.9;
 const STICKER_ROUNDED_CORNERS = 0.1;
+export const CUBE_GAP = 0.0;
 
 export const genEmptyThreeCube = () => {
-  const gap = 0.0;
   const skinProjection = 0.01;
 
   const cubes: THREE.Group<THREE.Object3DEventMap>[] = [];
@@ -29,9 +29,9 @@ export const genEmptyThreeCube = () => {
     );
 
     const pos = getPosByIdx(i);
-    cube.position.x = pos.x - CUBE_SIZE + gap * pos.x;
-    cube.position.y = pos.y - CUBE_SIZE + gap * pos.y;
-    cube.position.z = pos.z - CUBE_SIZE + gap * pos.z;
+    cube.position.x = pos.x - CUBE_SIZE + CUBE_GAP;
+    cube.position.y = pos.y - CUBE_SIZE + CUBE_GAP;
+    cube.position.z = pos.z - CUBE_SIZE + CUBE_GAP;
 
     const cubeGroup = new THREE.Group();
     cubeGroup.add(cube);
@@ -91,7 +91,7 @@ export const genEmptyThreeCube = () => {
       const sticker = new THREE.Mesh(
         stickerGeometry,
         new THREE.MeshStandardMaterial({
-          color: colorMapThree.X,
+          color: colorMapThree.X.clone(),
           // emissive: colorMapThree[side],
           transparent: true,
           opacity: 0,
@@ -134,5 +134,5 @@ export const genEmptyThreeCube = () => {
       stickers.push(sticker);
     }
   }
-  return {cubes, stickers, orgStickerPos: stickers.map((sticker) => sticker.position.clone())};
+  return { cubes, stickers, orgStickerPos: stickers.map((sticker) => sticker.position.clone()) };
 };

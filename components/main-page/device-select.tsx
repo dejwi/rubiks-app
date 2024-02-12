@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAppStore } from "@/helpers/store";
+import { useAppStore } from "@/lib/store";
 import { useEffect, useState } from "react";
 
 export function DeviceSelect() {
@@ -21,12 +21,14 @@ export function DeviceSelect() {
       const devices = await navigator.mediaDevices.enumerateDevices();
       const filt = devices.filter((d) => d.kind === "videoinput");
       setDevices(filt.map((d) => ({ id: d.deviceId, label: d.label })));
+
+      if (filt.length) updateStore({ deviceId: filt[0]?.deviceId });
     })();
   }, []);
 
   return (
     <Select value={deviceId} onValueChange={(id) => updateStore({ deviceId: id })}>
-      <SelectTrigger className="w-[280px]">
+      <SelectTrigger className="w-[200px]">
         <SelectValue placeholder="Select a camera device" />
       </SelectTrigger>
       <SelectContent>

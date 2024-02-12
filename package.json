@@ -20,6 +20,7 @@
     "@types/three": "^0.161.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "framer-motion": "^11.0.3",
     "gsap": "^3.12.5",
     "next": "14.1.0",
     "react": "^18",

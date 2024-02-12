@@ -4,13 +4,13 @@ export const colorScanMap: Record<string, { H: [number, number]; S: [number, num
   W: [
     {
       H: [0, 360],
-      S: [0, 15],
+      S: [0, 32],
       V: [64, 100],
     },
   ],
   O: [
     {
-      H: [2, 40],
+      H: [0, 40],
       S: [0, 79],
       V: [0, 100],
     },
@@ -25,9 +25,9 @@ export const colorScanMap: Record<string, { H: [number, number]; S: [number, num
       V: [0, 100],
     },
     {
-      H: [354, 360],
-      S: [0, 64],
-      V: [0, 78],
+      H: [348, 360],
+      S: [0, 77],
+      V: [0, 92],
     },
   ],
   Y: [
@@ -37,9 +37,9 @@ export const colorScanMap: Record<string, { H: [number, number]; S: [number, num
       V: [0, 100],
     },
     {
-      H: [56, 78],
+      H: [56, 85],
       S: [0, 90],
-      V: [88, 100],
+      V: [72, 100],
     },
   ],
   G: [

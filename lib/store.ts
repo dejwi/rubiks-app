@@ -1,16 +1,21 @@
 import { create } from "zustand";
-import { ICubeSide, IScanResult } from "./types";
-import { colorMapThree, cube_sides, cube_sides_scan } from "./helper";
+import { ICubeSide, IScanResult } from "../helpers/types";
+import { colorMapThree, cube_sides, cube_sides_scan, getIdxByPos } from "../helpers/helper";
 import { genEmptyThreeCube } from "@/components/cube-visualization/gen-empty-cube";
 import { createRef } from "react";
 import { ghostSideAnimationSettings } from "@/components/cube-visualization/animation-settings";
 import gsap from "gsap";
 import * as THREE from "three";
-import { cameraPositions } from "./camera-positions";
+import { cameraPositions } from "../helpers/camera-positions";
+import { colorEmissiveIntensityMap } from "./maps/color-emissive-intesity";
+import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
+import { ICubeMoves } from "./moves/moves";
+import { getRotation, rotateCubeAction } from "./moves/rotation-utils";
+import { solveCube } from "./solver/solver";
 
 const getObjectsDefault = () => {
-  const objects = createRef() as React.MutableRefObject<ReturnType<typeof genEmptyThreeCube>>;
-  objects.current = genEmptyThreeCube();
+  const objects = createRef() as React.MutableRefObject<ReturnType<typeof genEmptyThreeCube> & { scene: THREE.Scene }>;
+  objects.current = { ...genEmptyThreeCube(), scene: new THREE.Scene() };
   return objects;
 };
 const getCameraDefault = () => {
@@ -19,34 +24,72 @@ const getCameraDefault = () => {
   return camera;
 };
 
+const appStages = ["homepage", "deviceselect", "scan", "solve"] as const;
+export type IAppStages = (typeof appStages)[number];
+
 const defaultStore = {
-  threeWidth: 500,
-  threeHeight: 500,
+  threeWidth: 200,
+  threeHeight: 200,
+  scanSize: 170,
+  isScanRefreshing: false,
+  isScanRefreshGlow: false,
+  scanRefreshInterval: 550,
   highlight: undefined as ICubeSide | undefined,
   cube: Array(54).fill("X").join(""),
   currentScanFace: -1 as number | null,
   scanReversed: false,
-  scanSize: 170,
   deviceId: "",
   previewReversed: true,
   devScanPreviewShow: true,
-  devScanPreviewRefresh: true,
   objects: getObjectsDefault(),
   timeline: createRef() as React.MutableRefObject<gsap.core.Timeline>,
   camera: getCameraDefault(),
+  lastScanResult: [] as Array<IScanResult[number] & { id: number }>,
+  nextCubeRotation: null as null | THREE.Euler,
+  cubeSolution: [] as string[],
+  cubeSolutionStep: 0 as number | null,
+  isDuringRotation: false,
+  currentAppStage: "homepage" as IAppStages,
 };
 
 type IDefaultData = typeof defaultStore;
 
-interface IStore extends IDefaultData {
+export interface IStore extends IDefaultData {
   updateStore: (payload: Partial<IStore>) => void;
   updateCube: (cube: string) => void;
+  updateCubeSide: (side: ICubeSide, colors: ICubeSide[], glow?: boolean) => void;
   updateCubeScan: (scan: IScanResult) => void;
+  rotateCube: (move: ICubeMoves) => void;
+  rotateCube2Part: (move: ICubeMoves) => void;
+  initSolveCube: () => void;
+  nextCubeSolveStep: () => void;
 }
 
 export const useAppStore = create<IStore>()((set, get) => ({
   ...defaultStore,
   updateStore: (payload) => set(payload),
+  initSolveCube() {
+    const cube = get().cube;
+    const solution = solveCube(cube)
+      .map((s) => s.split(" "))
+      .flat()
+      .filter((s) => s !== "");
+    set({ cubeSolution: solution, cubeSolutionStep: 0 });
+    get().nextCubeSolveStep();
+  },
+  nextCubeSolveStep() {
+    const isIn2Part = get().nextCubeRotation !== null;
+    const currentStep = get().cubeSolutionStep;
+    const solution = get().cubeSolution;
+
+    if (currentStep === null) return;
+
+    get().rotateCube2Part(solution[currentStep] as ICubeMoves);
+    if (isIn2Part) {
+      set({ cubeSolutionStep: currentStep === solution.length - 1 ? null : currentStep + 1 });
+      return;
+    }
+  },
   updateCubeScan(scan) {
     const {
       currentScanFace,
@@ -81,20 +124,19 @@ export const useAppStore = create<IStore>()((set, get) => ({
 
         const newColor = colorMapThree[destSide];
         prevGhostSticker.material.emissive = newColor;
+        prevGhostSticker.material.color = newColor.clone();
+        prevGhostSticker.material.emissiveIntensity = 0;
 
         gsap.to(prevGhostSticker.position, {
           x: orgPos.x,
           y: orgPos.y,
           z: orgPos.z,
-          opacity: 1,
           duration: 0.05,
           ease: "power1.inOut",
           delay: delayBy(i),
         });
-        gsap.to(prevGhostSticker.material.color, {
-          r: newColor.r,
-          g: newColor.g,
-          b: newColor.b,
+        gsap.to(prevGhostSticker.material, {
+          opacity: 1,
           duration: 0.05,
           ease: "power1.inOut",
           delay: delayBy(i),
@@ -112,7 +154,7 @@ export const useAppStore = create<IStore>()((set, get) => ({
     for (let i = 0; i < 9; i++) {
       const sticker = objects.current.stickers[cube_sides.indexOf(nextScanSide) * 9 + i];
 
-      sticker.material.color = ghostSideAnimationSettings.color.clone();
+      // sticker.material.color = ghostSideAnimationSettings.color.clone();
 
       const targetPosition = sticker.position.clone();
       switch (nextScanSide) {
@@ -188,6 +230,63 @@ export const useAppStore = create<IStore>()((set, get) => ({
       set({ currentScanFace: currentScanFace + 1 });
     }
   },
+  rotateCube: (move) => {
+    if (get().isDuringRotation) return;
+    set({ isDuringRotation: true });
+
+    const { target } = getRotation(move, new THREE.Euler());
+
+    rotateCubeAction(get, target, move, () => set({ isDuringRotation: false }), true);
+  },
+  rotateCube2Part: (move) => {
+    if (get().isDuringRotation) return;
+    set({ isDuringRotation: true });
+
+    const nextCubeRotation = get().nextCubeRotation;
+
+    if (nextCubeRotation) {
+      rotateCubeAction(
+        get,
+        nextCubeRotation,
+        move,
+        () => set({ isDuringRotation: false, nextCubeRotation: null }),
+        true
+      );
+    } else {
+      const { target, preTarget } = getRotation(move, new THREE.Euler());
+      const next = target;
+      next.x -= preTarget.x;
+      next.y -= preTarget.y;
+      next.z -= preTarget.z;
+      rotateCubeAction(get, preTarget, move, () => set({ isDuringRotation: false, nextCubeRotation: next }), false);
+    }
+  },
+  updateCubeSide(side, colors) {
+    const stickers = get().objects.current.stickers;
+    const idx = cube_sides.indexOf(side) * 9;
+    const newCube = [...get().cube];
+    for (let i = 0; i < 9; i++) {
+      const sticker = stickers[idx + i];
+      const color = colorMapThree[colors[i]];
+      sticker.material.emissive = color;
+
+      sticker.material.emissiveIntensity = get().isScanRefreshGlow
+        ? colorEmissiveIntensityMap[color.getHexString()]
+        : 0;
+
+      gsap.to(sticker.material.color, {
+        r: color.r,
+        g: color.g,
+        b: color.b,
+        duration: 0.3,
+        ease: "power1.inOut",
+        delay: ghostSideAnimationSettings.delayBy(i) / 2,
+      });
+
+      newCube[idx + i] = colors[i];
+    }
+    set({ cube: newCube.join("") });
+  },
   updateCube(cube) {
     if (cube.length !== 54) return;
     const stickers = get().objects.current.stickers;
@@ -195,13 +294,13 @@ export const useAppStore = create<IStore>()((set, get) => ({
       const sticker = stickers[i];
       const color = cube[i];
 
-      sticker.material.opacity = color === "X" ? 0 : 1;
-      if (color !== "X") {
-        sticker.material.color = colorMapThree[color as ICubeSide];
-        sticker.material.emissive = colorMapThree[color as ICubeSide];
-      }
+      sticker.material.opacity = 1;
+      // if (color !== "X") {
+      sticker.material.color = colorMapThree[color as ICubeSide].clone();
+      sticker.material.emissive = colorMapThree[color as ICubeSide];
+      // }
     }
     console.log("update cube");
-    set({ cube });
+    set({ cube, currentScanFace: null });
   },
 }));

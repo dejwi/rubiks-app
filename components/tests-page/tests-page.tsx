@@ -8,7 +8,7 @@ import { cubeColorMap, getIdxByPos, reverseCord } from "@/helpers/helper";
 import CubeVisualization from "@/components/cube-visualization/cube-visulatization";
 import { colorScanMap } from "@/helpers/color-scan-map";
 import { CubeDevTools } from "../devtools/devtools";
-import { useAppStore } from "@/helpers/store";
+import { useAppStore } from "@/lib/store";
 import { RGBToHSV } from "@/helpers/rgb-to-hsv";
 
 const facesToScan: IFaces[] = ["front", "left", "back", "right", "bottom", "top"];

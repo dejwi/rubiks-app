@@ -10,21 +10,25 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAppStore } from "@/helpers/store";
+import { useAppStore } from "@/lib/store";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { cube_sides, solved_cube } from "@/helpers/helper";
 import { ICubeSide } from "@/helpers/types";
 import { Toggle } from "../ui/toggle";
-import { solveCube } from "@/helpers/solver/solver";
+import { solveCube } from "@/lib/solver/solver";
+import { useState } from "react";
+import { ICubeMoves, cube_moves } from "@/lib/moves/moves";
 
 export function CubeDevTools() {
-  const { cube, highlight, updateStore, updateCube } = useAppStore();
+  const { cube, highlight, updateStore, updateCube, rotateCube, rotateCube2Part } = useAppStore();
   const toggles = useAppStore((state) => ({
     scanReversed: state.scanReversed,
     previewReversed: state.previewReversed,
-    devScanPreviewRefresh: state.devScanPreviewRefresh,
+    isScanRefreshing: state.isScanRefreshing,
     devScanPreviewShow: state.devScanPreviewShow,
+    isScanRefreshGlow: state.isScanRefreshGlow,
   }));
+  const [move, setMove] = useState<ICubeMoves>("F");
 
   return (
     <Dialog>
@@ -84,6 +88,30 @@ export function CubeDevTools() {
               }}
             >
               Solve cube
+            </Button>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">RotateSide</Label>
+            <Select onValueChange={(val) => setMove(val as ICubeMoves)} value={move}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a side" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="none">None</SelectItem>
+                  {cube_moves.map((m) => (
+                    <SelectItem value={m} key={`dev-select-highlight-${m}`}>
+                      {m}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <Button type="button" variant="secondary" onClick={() => rotateCube(move)}>
+              Rotate
+            </Button>
+            <Button type="button" variant="secondary" onClick={() => rotateCube2Part(move)}>
+              Rotate 2part
             </Button>
           </div>
         </div>

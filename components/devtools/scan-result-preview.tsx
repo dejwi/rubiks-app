@@ -2,42 +2,26 @@
 
 import { colorMapThree } from "@/helpers/helper";
 import { RGBToHSV } from "@/helpers/rgb-to-hsv";
-import { useAppStore } from "@/helpers/store";
-import { IScanResult } from "@/helpers/types";
-import { useEffect, useState } from "react";
+import { useAppStore } from "@/lib/store";
+
 import { Toggle } from "../ui/toggle";
 
-interface IProps {
-  getScannedColors: () => IScanResult;
-}
-
-const DevScanResultPreview = ({ getScannedColors }: IProps) => {
-  const [data, setData] = useState<Array<IScanResult[number] & { id: number }>>([]);
-  const previewRefresh = useAppStore((s) => s.devScanPreviewRefresh);
-  const updateStore = useAppStore((s) => s.updateStore);
-
-  useEffect(() => {
-    if (!previewRefresh) return;
-    const interval = setInterval(() => {
-      setData(getScannedColors().map((scanData) => ({ ...scanData, id: Math.random() })));
-    }, 550);
-    return () => {
-      clearInterval(interval);
-    };
-  }, [previewRefresh, getScannedColors]);
+const DevScanResultPreview = () => {
+  const previewRefresh = useAppStore((s) => s.isScanRefreshing);
+  const [updateStore, lastScanResult] = useAppStore((s) => [s.updateStore, s.lastScanResult]);
 
   return (
     <div>
       <Toggle
         pressed={previewRefresh}
-        onClick={() => updateStore({ devScanPreviewRefresh: !previewRefresh })}
+        onClick={() => updateStore({ isScanRefreshing: !previewRefresh })}
         className="w-[10rem]"
         variant="outline"
       >
         {previewRefresh ? "Pause" : "Unpause"}
       </Toggle>
       <div className="grid grid-cols-3 w-[10rem] h-[10rem] grid-rows-3 border border-violet-600">
-        {data?.map(({ destSide, scanData, id }) => (
+        {lastScanResult?.map(({ destSide, scanData, id }) => (
           <div
             key={`dev-scan-preview-${id}`}
             className="flex items-center justify-center w-full h-full"
