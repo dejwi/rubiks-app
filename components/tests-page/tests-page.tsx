@@ -5,10 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ICubeSide, IFaces, IScanResult } from "@/helpers/types";
 import { getCubePosByFace } from "@/helpers/fill-cube-face";
 import { cubeColorMap, getIdxByPos, reverseCord } from "@/helpers/helper";
-import CubeVisualization from "@/components/cube-visualization/cube-visulatization";
+import CubeVisualization from "@/components/cube-visualization/cube-three";
 import { colorScanMap } from "@/helpers/color-scan-map";
 import { CubeDevTools } from "../devtools/devtools";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 import { RGBToHSV } from "@/helpers/rgb-to-hsv";
 
 const facesToScan: IFaces[] = ["front", "left", "back", "right", "bottom", "top"];

@@ -1,17 +1,21 @@
 import { create } from "zustand";
-import { ICubeSide, IScanResult } from "../helpers/types";
-import { colorMapThree, cube_sides, cube_sides_scan, getIdxByPos } from "../helpers/helper";
+import { ICubeSide, IScanResult } from "../../helpers/types";
+import { colorMapThree, cube_sides, cube_sides_scan, getIdxByPos } from "../../helpers/helper";
 import { genEmptyThreeCube } from "@/components/cube-visualization/gen-empty-cube";
 import { createRef } from "react";
 import { ghostSideAnimationSettings } from "@/components/cube-visualization/animation-settings";
 import gsap from "gsap";
 import * as THREE from "three";
-import { cameraPositions } from "../helpers/camera-positions";
-import { colorEmissiveIntensityMap } from "./maps/color-emissive-intesity";
+import { cameraPositions } from "../../helpers/camera-positions";
+import { colorEmissiveIntensityMap } from "../maps/color-emissive-intesity";
 import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
-import { ICubeMoves } from "./moves/moves";
-import { getRotation, rotateCubeAction } from "./moves/rotation-utils";
-import { solveCube } from "./solver/solver";
+import { ICubeMoves } from "../moves/moves";
+import { getRotation, rotateCubeAction } from "../moves/rotation-utils";
+import { solveCube } from "../solver/solver";
+import { updateCube } from "./update-cube";
+import { toggleCubeRotating } from "./toggle-rotate";
+import { updateCameraPos } from "./update-camera";
+import { hideCubeStickers } from "./hide-stickers";
 
 const getObjectsDefault = () => {
   const objects = createRef() as React.MutableRefObject<ReturnType<typeof genEmptyThreeCube> & { scene: THREE.Scene }>;
@@ -42,7 +46,8 @@ const defaultStore = {
   previewReversed: true,
   devScanPreviewShow: true,
   objects: getObjectsDefault(),
-  timeline: createRef() as React.MutableRefObject<gsap.core.Timeline>,
+  ghostStickersTimeline: createRef() as React.MutableRefObject<gsap.core.Timeline>,
+  cubeSpinningTimeline: createRef() as React.MutableRefObject<gsap.core.Timeline | null>,
   camera: getCameraDefault(),
   lastScanResult: [] as Array<IScanResult[number] & { id: number }>,
   nextCubeRotation: null as null | THREE.Euler,
@@ -50,20 +55,27 @@ const defaultStore = {
   cubeSolutionStep: 0 as number | null,
   isDuringRotation: false,
   currentAppStage: "homepage" as IAppStages,
+  scanCardTop: 0,
+  scanCardRight: 0,
 };
 
 type IDefaultData = typeof defaultStore;
 
 export interface IStore extends IDefaultData {
   updateStore: (payload: Partial<IStore>) => void;
-  updateCube: (cube: string) => void;
+  updateCube: (cube: string, setVisible?: boolean) => void;
   updateCubeSide: (side: ICubeSide, colors: ICubeSide[], glow?: boolean) => void;
   updateCubeScan: (scan: IScanResult) => void;
   rotateCube: (move: ICubeMoves) => void;
   rotateCube2Part: (move: ICubeMoves) => void;
   initSolveCube: () => void;
   nextCubeSolveStep: () => void;
+  toggleCubeRotating: () => void;
+  updateCameraPos: (pos: [number, number, number]) => void;
+  hideCubeStickers: () => void;
 }
+
+export type IStoreFn = { get: () => IStore; set: (payload: Partial<IStore>) => void };
 
 export const useAppStore = create<IStore>()((set, get) => ({
   ...defaultStore,
@@ -77,6 +89,8 @@ export const useAppStore = create<IStore>()((set, get) => ({
     set({ cubeSolution: solution, cubeSolutionStep: 0 });
     get().nextCubeSolveStep();
   },
+  hideCubeStickers: () => hideCubeStickers({ get, set }),
+  updateCameraPos: (pos) => updateCameraPos({ get, set, cameraPos: pos }),
   nextCubeSolveStep() {
     const isIn2Part = get().nextCubeRotation !== null;
     const currentStep = get().cubeSolutionStep;
@@ -90,14 +104,9 @@ export const useAppStore = create<IStore>()((set, get) => ({
       return;
     }
   },
+  toggleCubeRotating: () => toggleCubeRotating({ get, set }),
   updateCubeScan(scan) {
-    const {
-      currentScanFace,
-      objects,
-      timeline,
-      cube,
-      camera: { current: camera },
-    } = get();
+    const { currentScanFace, objects, ghostStickersTimeline: timeline, cube } = get();
 
     // Stop the previous timeline if it exists
     if (timeline.current) {
@@ -216,16 +225,8 @@ export const useAppStore = create<IStore>()((set, get) => ({
         0
       );
 
-      const newCameraPos = cameraPositions[currentScanFace + 1] || cameraPositions[0];
-
       // Animate camera position change
-      gsap.to(camera.position, {
-        x: newCameraPos[0],
-        y: newCameraPos[1],
-        z: newCameraPos[2],
-        duration: 0.6,
-        ease: "power1.inOut",
-      });
+      get().updateCameraPos(cameraPositions[cube_sides_scan[currentScanFace + 1]] || cameraPositions.F);
 
       set({ currentScanFace: currentScanFace + 1 });
     }
@@ -265,7 +266,7 @@ export const useAppStore = create<IStore>()((set, get) => ({
     const stickers = get().objects.current.stickers;
     const idx = cube_sides.indexOf(side) * 9;
     const newCube = [...get().cube];
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < colors.length; i++) {
       const sticker = stickers[idx + i];
       const color = colorMapThree[colors[i]];
       sticker.material.emissive = color;
@@ -287,20 +288,5 @@ export const useAppStore = create<IStore>()((set, get) => ({
     }
     set({ cube: newCube.join("") });
   },
-  updateCube(cube) {
-    if (cube.length !== 54) return;
-    const stickers = get().objects.current.stickers;
-    for (let i = 0; i < 54; i++) {
-      const sticker = stickers[i];
-      const color = cube[i];
-
-      sticker.material.opacity = 1;
-      // if (color !== "X") {
-      sticker.material.color = colorMapThree[color as ICubeSide].clone();
-      sticker.material.emissive = colorMapThree[color as ICubeSide];
-      // }
-    }
-    console.log("update cube");
-    set({ cube, currentScanFace: null });
-  },
+  updateCube: (cube, setVisible) => updateCube({ get, set, cube, setVisible }),
 }));

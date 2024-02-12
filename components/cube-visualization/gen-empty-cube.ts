@@ -11,6 +11,7 @@ export const CUBE_GAP = 0.0;
 export const genEmptyThreeCube = () => {
   const skinProjection = 0.01;
 
+  const rubiksGroup = new THREE.Group();
   const cubes: THREE.Group<THREE.Object3DEventMap>[] = [];
   const stickers: THREE.Mesh<THREE.ExtrudeGeometry, THREE.MeshStandardMaterial, THREE.Object3DEventMap>[] = [];
 
@@ -23,8 +24,8 @@ export const genEmptyThreeCube = () => {
         // roughness: 0.8,
         toneMapped: false,
         emissiveIntensity: 0,
-        // transparent: true,
-        // opacity: 0.6,
+        transparent: true,
+        opacity: 0,
       })
     );
 
@@ -35,6 +36,7 @@ export const genEmptyThreeCube = () => {
 
     const cubeGroup = new THREE.Group();
     cubeGroup.add(cube);
+    rubiksGroup.add(cubeGroup);
     cubes.push(cubeGroup);
   }
 
@@ -92,7 +94,6 @@ export const genEmptyThreeCube = () => {
         stickerGeometry,
         new THREE.MeshStandardMaterial({
           color: colorMapThree.X.clone(),
-          // emissive: colorMapThree[side],
           transparent: true,
           opacity: 0,
           side: THREE.DoubleSide,
@@ -134,5 +135,5 @@ export const genEmptyThreeCube = () => {
       stickers.push(sticker);
     }
   }
-  return { cubes, stickers, orgStickerPos: stickers.map((sticker) => sticker.position.clone()) };
+  return { cubes, stickers, orgStickerPos: stickers.map((sticker) => sticker.position.clone()), rubiksGroup };
 };

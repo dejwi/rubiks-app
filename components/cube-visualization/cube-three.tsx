@@ -3,7 +3,7 @@
 import * as THREE from "three";
 
 import { useEffect, useRef } from "react";
-import { colorMapThree, getIdxByPos, solved_cube } from "@/helpers/helper";
+import { colorMapThree, getIdxByPos } from "@/helpers/helper";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -12,18 +12,17 @@ import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 import { cameraPositions } from "@/helpers/camera-positions";
 import { colorEmissiveIntensityMap } from "@/lib/maps/color-emissive-intesity";
 
-function CubeVisualization() {
+function CubeThree() {
   const {
     highlight,
     objects,
     camera: { current: camera },
     threeWidth: width,
     threeHeight: height,
-    updateCube,
   } = useAppStore();
   const outline_selection = useRef<THREE.Object3D<THREE.Object3DEventMap>[]>([]);
   const refContainer = useRef<HTMLDivElement>(null);
@@ -77,7 +76,7 @@ function CubeVisualization() {
     light.position.set(1, 1, 1);
     scene.add(light);
 
-    camera.position.set(...cameraPositions[0]);
+    camera.position.set(...cameraPositions.X);
     camera.lookAt(scene.position);
 
     // Log camera position on c key down
@@ -115,9 +114,10 @@ function CubeVisualization() {
     // controls.maxPolarAngle = Math.PI / 2;
 
     // Load cubes into the scene
-    objects.current.cubes.forEach((group) => scene.add(group));
+    // objects.current.cubes.forEach((group) => scene.add(group));
+    scene.add(objects.current.rubiksGroup);
     sceneRef.current = scene;
-    updateCube(solved_cube);
+    // updateCube(solved_cube);
 
     // Set up post-processing
     const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);
@@ -204,4 +204,4 @@ function CubeVisualization() {
   return <div ref={refContainer} />;
 }
 
-export default CubeVisualization;
+export default CubeThree;

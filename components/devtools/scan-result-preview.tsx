@@ -2,7 +2,7 @@
 
 import { colorMapThree } from "@/helpers/helper";
 import { RGBToHSV } from "@/helpers/rgb-to-hsv";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 
 import { Toggle } from "../ui/toggle";
 

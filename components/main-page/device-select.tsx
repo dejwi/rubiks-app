@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 import { useEffect, useState } from "react";
 
 export function DeviceSelect() {

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { cube_sides, solved_cube } from "@/helpers/helper";
 import { ICubeSide } from "@/helpers/types";
@@ -20,7 +20,7 @@ import { useState } from "react";
 import { ICubeMoves, cube_moves } from "@/lib/moves/moves";
 
 export function CubeDevTools() {
-  const { cube, highlight, updateStore, updateCube, rotateCube, rotateCube2Part } = useAppStore();
+  const { cube, highlight, updateStore, updateCube, rotateCube, rotateCube2Part, toggleCubeRotating } = useAppStore();
   const toggles = useAppStore((state) => ({
     scanReversed: state.scanReversed,
     previewReversed: state.previewReversed,
@@ -33,7 +33,9 @@ export function CubeDevTools() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline">DevTools</Button>
+        <Button variant="outline" className="fixed left-4 bottom-4">
+          DevTools
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -42,8 +44,8 @@ export function CubeDevTools() {
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label className="text-right">Cube</Label>
-            <Input className="col-span-2" value={cube} onChange={(e) => updateCube(e.target.value)} />
-            <Button variant="outline" onClick={() => updateCube(solved_cube)}>
+            <Input className="col-span-2" value={cube} onChange={(e) => updateCube(e.target.value, true)} />
+            <Button variant="outline" onClick={() => updateCube(solved_cube, true)}>
               Set solved
             </Button>
           </div>
@@ -113,6 +115,9 @@ export function CubeDevTools() {
             <Button type="button" variant="secondary" onClick={() => rotateCube2Part(move)}>
               Rotate 2part
             </Button>
+          </div>
+          <div>
+            <Button onClick={() => toggleCubeRotating()}>Toggle rotating cube</Button>
           </div>
         </div>
         <DialogFooter className="sm:justify-start">

@@ -1,13 +1,15 @@
+"use client";
+
 import { colorScanMap, scannedColorToSide } from "@/helpers/color-scan-map";
 import { reverseCord } from "@/helpers/helper";
 import { RGBToHSV } from "@/helpers/rgb-to-hsv";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 import { ICubeSide, IScanResult } from "@/helpers/types";
 import { RefObject, useCallback } from "react";
 
 interface IProps {
-  video: RefObject<HTMLVideoElement>;
-  canvas: RefObject<HTMLCanvasElement>;
+  video: HTMLVideoElement | undefined;
+  canvas: HTMLCanvasElement | undefined;
 }
 
 export const useGetScannedColors = ({ canvas, video }: IProps) => {
@@ -15,15 +17,19 @@ export const useGetScannedColors = ({ canvas, video }: IProps) => {
   const scanReversed = useAppStore((s) => s.scanReversed);
 
   const getScannedColors = useCallback((): IScanResult => {
-    if (!canvas.current || !video.current) return [];
-    const width = video.current.videoWidth;
-    const height = video.current.videoHeight;
-    canvas.current.width = width;
-    canvas.current.height = height;
+    if (!canvas || !video) return [];
 
-    const ctx = canvas.current.getContext("2d");
-    if (!ctx) return [];
-    ctx.drawImage(video.current, 0, 0);
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      console.log("no ctx");
+      return [];
+    }
+    ctx.drawImage(video, 0, 0);
     ctx.fillStyle = "#1c75d0A2";
 
     const offset = 3;

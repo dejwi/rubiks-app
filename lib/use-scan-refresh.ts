@@ -1,5 +1,5 @@
 import { cube_sides_scan } from "@/helpers/helper";
-import { useAppStore } from "@/lib/store";
+import { useAppStore } from "@/lib/store/store";
 import { IScanResult } from "@/helpers/types";
 import { useEffect } from "react";
 

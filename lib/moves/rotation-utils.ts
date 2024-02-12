@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { ICubeMoves } from "./moves";
-import { IStore } from "../store";
+import { IStore } from "../store/store";
 import { getIdxByPos } from "@/helpers/helper";
 import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
 import { ICubeSide } from "@/helpers/types";
