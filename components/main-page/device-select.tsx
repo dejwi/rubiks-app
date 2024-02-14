@@ -19,23 +19,26 @@ export function DeviceSelect() {
   const { toast } = useToast();
 
   useEffect(() => {
-    navigator.permissions.query({ name: "camera" as any }).then(async (permissionStatus) => {
-      console.log({ permissionStatus });
-      if (permissionStatus.state === "granted") {
+    const check = async () => {
+      try {
+        const st = await navigator.mediaDevices.getUserMedia({ video: true });
+        st.getTracks().forEach((t) => t.stop());
+
         const devices = await navigator.mediaDevices.enumerateDevices();
         const filt = devices.filter((d) => d.kind === "videoinput" && d.deviceId);
         setDevices(filt.map((d) => ({ id: d.deviceId, label: d.label })));
 
         if (filt.length) updateStore({ deviceId: filt[0]?.deviceId });
-      } else {
-        console.log("toast");
+      } catch (err) {
         toast({
           variant: "destructive",
           title: "Camera Permission Denied",
           description: "Please allow camera access to use this app.",
         });
       }
-    });
+    };
+
+    check();
   }, []);
 
   return (
