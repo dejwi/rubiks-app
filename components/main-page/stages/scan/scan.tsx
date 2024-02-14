@@ -97,6 +97,7 @@ const ScanCubeStage = () => {
           autoPlay
           className={scanReversed || previewReversed ? "-scale-x-100" : undefined}
           onCanPlay={onVideoCanPlay}
+          playsInline
         />
         <div className="absolute">
           <Card
