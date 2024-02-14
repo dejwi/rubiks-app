@@ -6,20 +6,10 @@ import { motion } from "framer-motion";
 import { DeviceSelect } from "../device-select";
 import { Button } from "@/components/ui/button";
 import { useAppStore } from "@/lib/store/store";
-import { cameraPositions } from "@/helpers/camera-positions";
 import { CubePosAnchor } from "@/components/cube-visualization/cube-pos-anchor";
 
 const InitStage = () => {
-  const {
-    currentAppStage,
-    updateStore,
-    deviceId,
-    updateCameraPos,
-    toggleCubeRotating,
-    hideCubeStickers,
-    updateCubeScan,
-    cubeScale,
-  } = useAppStore();
+  const { currentAppStage, updateStore, deviceId, toggleCubeRotating, hideCubeStickers } = useAppStore();
 
   const mainBtnClick = () => {
     if (currentAppStage === "homepage") {
@@ -43,10 +33,8 @@ const InitStage = () => {
     <motion.div ref={refCallback} className="mt-[-10vh] flex flex-col">
       <div className="mx-4 flex justify-between items-center">
         <MainPageHeading />
-        {/* <div className="cube-anchor mr-16 -mt-2" /> */}
         <CubePosAnchor className="mr-16 -mt-2" />
       </div>
-      {/* <CubeVisualization headingTop={headingRef?.current?.getBoundingClientRect().top} /> */}
       <motion.div
         className="self-center mt-[5rem] relative flex gap-4"
         exit={{
@@ -69,6 +57,7 @@ const InitStage = () => {
             layout
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0, transition: { delay: 1.6 } }}
+            disabled={currentAppStage === "deviceselect" && !deviceId}
           >
             {currentAppStage === "homepage" ? "Continue" : "Scan"}
           </motion.button>

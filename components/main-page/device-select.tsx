@@ -11,19 +11,31 @@ import {
 } from "@/components/ui/select";
 import { useAppStore } from "@/lib/store/store";
 import { useEffect, useState } from "react";
+import { useToast } from "../ui/use-toast";
 
 export function DeviceSelect() {
   const { updateStore, deviceId } = useAppStore();
   const [devices, setDevices] = useState<{ id: string; label: string }[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
-    (async () => {
-      const devices = await navigator.mediaDevices.enumerateDevices();
-      const filt = devices.filter((d) => d.kind === "videoinput");
-      setDevices(filt.map((d) => ({ id: d.deviceId, label: d.label })));
+    navigator.permissions.query({ name: "camera" as any }).then(async (permissionStatus) => {
+      console.log({ permissionStatus });
+      if (permissionStatus.state === "granted") {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const filt = devices.filter((d) => d.kind === "videoinput" && d.deviceId);
+        setDevices(filt.map((d) => ({ id: d.deviceId, label: d.label })));
 
-      if (filt.length) updateStore({ deviceId: filt[0]?.deviceId });
-    })();
+        if (filt.length) updateStore({ deviceId: filt[0]?.deviceId });
+      } else {
+        console.log("toast");
+        toast({
+          variant: "destructive",
+          title: "Camera Permission Denied",
+          description: "Please allow camera access to use this app.",
+        });
+      }
+    });
   }, []);
 
   return (

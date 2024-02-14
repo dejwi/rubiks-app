@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/toaster";
 
 const fontSans = Inter({
   subsets: ["latin"],
@@ -20,8 +21,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={cn("h-screen bg-background font-sans antialiased w-screen overflow-clip", fontSans.variable)}>
+      <body className={cn("bg-background font-sans antialiased", fontSans.variable)}>
         {children}
+        <Toaster />
       </body>
     </html>
   );
