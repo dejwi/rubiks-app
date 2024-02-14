@@ -3,12 +3,14 @@ import { useAppStore } from "./store/store";
 import { solved_cube } from "@/helpers/helper";
 
 const useInitApp = () => {
-  const { toggleCubeRotating, updateCube } = useAppStore();
+  const { toggleCubeRotating, updateCube, updateStore } = useAppStore();
 
   const inited = useRef(false);
   useEffect(() => {
     if (inited.current) return;
     inited.current = true;
+
+    // updateStore({ cubeScale: 200 / window.innerWidth });
 
     updateCube(solved_cube);
     setTimeout(() => {

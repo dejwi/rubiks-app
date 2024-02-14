@@ -1,20 +1,20 @@
-import React from "react";
-import CubeThree from "./cube-three";
+"use client";
+
+import React, { useEffect } from "react";
+import CubeThree, { THREE_HEIGHT, THREE_WIDTH } from "./cube-three";
 import { Variants, motion } from "framer-motion";
 import { useAppStore } from "@/lib/store/store";
-import { init } from "next/dist/compiled/webpack/webpack";
+import { clear } from "console";
 
-interface IProps {
-  headingTop: number | undefined;
-}
-
-const CubeVisualization = ({ headingTop }: IProps) => {
-  const { currentAppStage, scanCardRight, scanCardTop } = useAppStore();
-  const initTop = headingTop ?? 0;
+const CubeVisualization = () => {
+  const { currentAppStage, cubeTop, cubeScale, cubeLeft } = useAppStore();
 
   const variants: Variants = {
-    init: {
-      y: [initTop + 20, initTop, initTop + 20], // Define the y-axis animation values
+    initAnim: {
+      scale: [cubeScale],
+      x: [cubeLeft], // Define the x-axis animation values
+      // y: [0, 0], // Define the y-axis animation values
+      y: [cubeTop + 20, cubeTop, cubeTop + 20], // Define the y-axis animation values
       transition: {
         repeat: Infinity, // Repeat the animation infinitely
         duration: 3, // Duration of each animation cycle
@@ -22,25 +22,30 @@ const CubeVisualization = ({ headingTop }: IProps) => {
         delay: 3,
       },
     },
-    scan: {
-      y: scanCardTop + 20,
-      x: -scanCardRight + 370,
+    default: {
+      y: cubeTop,
+      x: cubeLeft,
+      scale: cubeScale,
       transition: {
         ease: "easeOut",
         duration: 0.8,
       },
     },
   };
-  // style={{ top: headingTop }}
+
+  const getVariant = () => {
+    if (currentAppStage === "homepage" || currentAppStage === "deviceselect") {
+      return "initAnim";
+    }
+    return "default";
+  };
+
   return (
-    <motion.div
-      className="absolute right-0 top-0"
-      variants={variants}
-      initial={{ y: initTop }}
-      animate={currentAppStage === "scan" ? "scan" : "init"}
-    >
-      <CubeThree />
-    </motion.div>
+    <div className="fixed w-screen h-screen overflow-hidden pointer-events-none">
+      <motion.div className="absolute left-0 top-0 origin-top-left" variants={variants} animate={getVariant()}>
+        <CubeThree />
+      </motion.div>
+    </div>
   );
 };
 

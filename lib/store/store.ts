@@ -32,8 +32,6 @@ const appStages = ["homepage", "deviceselect", "scan", "solve"] as const;
 export type IAppStages = (typeof appStages)[number];
 
 const defaultStore = {
-  threeWidth: 200,
-  threeHeight: 200,
   scanSize: 170,
   isScanRefreshing: false,
   isScanRefreshGlow: false,
@@ -55,8 +53,10 @@ const defaultStore = {
   cubeSolutionStep: 0 as number | null,
   isDuringRotation: false,
   currentAppStage: "homepage" as IAppStages,
-  scanCardTop: 0,
-  scanCardRight: 0,
+  cubeTop: 0,
+  // cubeRight: 0,
+  cubeScale: 0.5,
+  cubeLeft: 0,
 };
 
 type IDefaultData = typeof defaultStore;
@@ -96,11 +96,17 @@ export const useAppStore = create<IStore>()((set, get) => ({
     const currentStep = get().cubeSolutionStep;
     const solution = get().cubeSolution;
 
-    if (currentStep === null) return;
+    if (currentStep === null || get().isDuringRotation) return;
 
     get().rotateCube2Part(solution[currentStep] as ICubeMoves);
     if (isIn2Part) {
-      set({ cubeSolutionStep: currentStep === solution.length - 1 ? null : currentStep + 1 });
+      if (currentStep === solution.length - 1) {
+        set({ cubeSolutionStep: null });
+        get().toggleCubeRotating();
+      } else {
+        set({ cubeSolutionStep: currentStep + 1 });
+      }
+
       return;
     }
   },

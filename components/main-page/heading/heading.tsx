@@ -20,6 +20,7 @@ const MainPageHeading = () => {
         }}
         initial="hidden"
         animate="visible"
+        exit="hidden"
       >
         {text.map((t) => (
           <AnimatedText key={`head-${t}`} text={t} />
@@ -38,6 +39,7 @@ const MainPageHeading = () => {
         }}
         initial="hidden"
         animate="visible"
+        exit="hidden"
       >
         {/* <AnimatedText text={subText} /> */}
         {subText.map((t) => (

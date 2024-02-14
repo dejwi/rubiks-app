@@ -2,15 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import { useScanRefresh } from "@/lib/use-scan-refresh";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useGetScannedColors } from "../../use-get-scanned-colors";
 import { useAppStore } from "@/lib/store/store";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { cubeSidesFull, cube_sides_scan } from "@/helpers/helper";
 import ScanColorPanel from "./color-panel";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+import { CubePosAnchor } from "@/components/cube-visualization/cube-pos-anchor";
 
-const ScanCubeStage = React.forwardRef<HTMLDivElement>((_, forwardedRef) => {
+const ScanCubeStage = () => {
   const [video, setVideo] = useState<HTMLVideoElement>();
   const [canvas, setCanvas] = useState<HTMLCanvasElement>();
   const [streamStared, setStreamStarted] = useState(false);
@@ -21,17 +23,9 @@ const ScanCubeStage = React.forwardRef<HTMLDivElement>((_, forwardedRef) => {
     previewReversed,
     scanSize,
     deviceId,
-    devScanPreviewShow,
     updateCubeScan,
     updateStore,
     currentScanFace,
-    initSolveCube,
-    cubeSolution,
-    cubeSolutionStep,
-    nextCubeSolveStep,
-    currentAppStage,
-    updateCube,
-    toggleCubeRotating,
     lastScanResult,
   } = useAppStore();
 
@@ -62,59 +56,61 @@ const ScanCubeStage = React.forwardRef<HTMLDivElement>((_, forwardedRef) => {
     };
 
     fn();
-    updateStore({ isScanRefreshing: true });
-  }, []);
-
-  const cardRefCallback = useCallback((ref: HTMLDivElement | null) => {
-    if (!ref) return;
-    const pos = ref.getBoundingClientRect();
-    updateStore({ scanCardTop: pos.top, scanCardRight: pos.right });
   }, []);
 
   const mainCardBtnClick = () => {
     if (isConfirmingColors) {
       setIsConfirmingColors(false);
       updateCubeScan(lastScanResult);
-      updateStore({ isScanRefreshing: true });
+
+      if (currentScanFace !== cube_sides_scan.length - 1) {
+        updateStore({ isScanRefreshing: true });
+      }
       return;
     }
 
     updateStore({ isScanRefreshing: false });
-    console.log(lastScanResult);
     setIsConfirmingColors(true);
+  };
+
+  const onVideoCanPlay = () => {
+    setStreamStarted(true);
+    if (!streamStared) {
+      updateStore({ isScanRefreshing: true });
+      updateCubeScan([]);
+    }
+  };
+
+  const onSolveClick = () => {
+    updateStore({ currentAppStage: "solve" });
   };
 
   return (
     <div>
-      {/* <div className="flex gap-4 mb-4">
-        <Button onClick={onStart} disabled={!deviceId}>
-          Start
-        </Button>
-        <Button onClick={onPause} variant="destructive">
-          Pause
-        </Button>
-        <Button onClick={onScan} variant="outline">
-          Scan
-        </Button>
-        <Button onClick={() => initSolveCube()} variant="outline" disabled={currentScanFace !== null}>
-          Init solve
-        </Button>
-      </div> */}
-      <div className="flex w-screen h-screen relative  items-center justify-center">
-        <video
+      <motion.div
+        className="flex w-screen h-screen relative  items-center justify-center"
+        initial={{ opacity: 0 }}
+        animate={streamStared ? { opacity: 1, transition: { delay: 0.5 } } : { opacity: 0 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.video
           autoPlay
           className={scanReversed || previewReversed ? "-scale-x-100" : undefined}
-          onCanPlay={() => setStreamStarted(true)}
+          onCanPlay={onVideoCanPlay}
         />
         <div className="absolute">
           <Card
             className="w-[350px] bg-card/80 backdrop-blur-sm"
             style={{ marginTop: `calc(-${scanSize}px - 12.5rem )` }}
-            ref={cardRefCallback}
           >
             <CardHeader className="py-4">
-              <CardTitle className="text-muted-foreground">
-                Show{" "}
+              <CardTitle
+                className={cn(
+                  "text-muted-foreground transition-opacity duration-700 delay-700",
+                  currentScanFace === null && "opacity-0"
+                )}
+              >
+                {isConfirmingColors ? "Confirm" : "Show"}{" "}
                 <span className="text-foreground text-lg">
                   {currentScanFace && currentScanFace !== -1
                     ? cubeSidesFull[cube_sides_scan[currentScanFace]]
@@ -124,16 +120,36 @@ const ScanCubeStage = React.forwardRef<HTMLDivElement>((_, forwardedRef) => {
               </CardTitle>
               {/* <CardDescription>Tap color to correct it</CardDescription> */}
             </CardHeader>
-            <CardContent className="h-[9rem] flex items-start">
-              <AnimatePresence>{isConfirmingColors && <ScanColorPanel key="scan-color-panel" />}</AnimatePresence>
+            <CardContent className="h-[9rem]">
+              {currentScanFace !== null ? (
+                <div className="grid grid-cols-[1fr_1fr] h-full w-full">
+                  <div>
+                    <AnimatePresence>{isConfirmingColors && <ScanColorPanel key="scan-color-panel" />}</AnimatePresence>
+                  </div>
+                  <div className="flex w-full justify-center items-center">
+                    {streamStared && <CubePosAnchor className="mr-[-3.5rem]" />}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-full w-full">
+                  <CubePosAnchor />
+                </div>
+              )}
             </CardContent>
             <CardFooter className="flex justify-between py-4">
-              <Button variant="outline" disabled>
-                Cancel
+              <Button
+                variant="outline"
+                // disabled={currentScanFace !== null}
+                className={cn("w-full transition", currentScanFace !== null && "opacity-0 pointer-events-none")}
+                onClick={onSolveClick}
+              >
+                Solve
               </Button>
-              <Button disabled={currentScanFace === -1} onClick={mainCardBtnClick}>
-                {isConfirmingColors ? "Confirm" : "Scan"}
-              </Button>
+              {currentScanFace !== null && (
+                <Button disabled={currentScanFace === -1} onClick={mainCardBtnClick}>
+                  {isConfirmingColors ? "Confirm" : "Scan"}
+                </Button>
+              )}
             </CardFooter>
           </Card>
         </div>
@@ -153,11 +169,11 @@ const ScanCubeStage = React.forwardRef<HTMLDivElement>((_, forwardedRef) => {
             <div />
           </div>
         )}
-      </div>
+      </motion.div>
       <canvas id="canvas-scan" className={`w-[40rem] hidden  ${scanReversed ? "-scale-x-100" : ""}`} />
     </div>
   );
-});
+};
 
 ScanCubeStage.displayName = "ScanCubeStage";
 

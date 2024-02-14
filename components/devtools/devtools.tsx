@@ -20,7 +20,18 @@ import { useState } from "react";
 import { ICubeMoves, cube_moves } from "@/lib/moves/moves";
 
 export function CubeDevTools() {
-  const { cube, highlight, updateStore, updateCube, rotateCube, rotateCube2Part, toggleCubeRotating } = useAppStore();
+  const {
+    cube,
+    highlight,
+    updateStore,
+    updateCube,
+    rotateCube,
+    rotateCube2Part,
+    toggleCubeRotating,
+    cubeLeft,
+    cubeTop,
+    cubeScale,
+  } = useAppStore();
   const toggles = useAppStore((state) => ({
     scanReversed: state.scanReversed,
     previewReversed: state.previewReversed,
@@ -118,6 +129,41 @@ export function CubeDevTools() {
           </div>
           <div>
             <Button onClick={() => toggleCubeRotating()}>Toggle rotating cube</Button>
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Cube left</Label>
+            <Input
+              className="col-span-2"
+              value={cubeLeft}
+              onChange={(e) => updateStore({ cubeLeft: +e.target.value || 0 })}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Cube top</Label>
+            <Input
+              className="col-span-2"
+              value={cubeTop}
+              onChange={(e) => updateStore({ cubeTop: +e.target.value || 0 })}
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right">Cube scale</Label>
+            <Input
+              className="col-span-2"
+              value={cubeScale}
+              onChange={(e) => updateStore({ cubeScale: +e.target.value || 1 })}
+            />
+          </div>
+          <div>
+            <Button
+              onClick={() => {
+                toggleCubeRotating();
+                updateCube("RRRDUDULFURBURBFBFLURBFRLFUDDLFDUDLLDBBULLBLBUFFRBFDDR", true);
+                updateStore({ currentAppStage: "solve" });
+              }}
+            >
+              Solving step
+            </Button>
           </div>
         </div>
         <DialogFooter className="sm:justify-start">

@@ -16,13 +16,14 @@ import { useAppStore } from "@/lib/store/store";
 import { cameraPositions } from "@/helpers/camera-positions";
 import { colorEmissiveIntensityMap } from "@/lib/maps/color-emissive-intesity";
 
+export const THREE_WIDTH = 400;
+export const THREE_HEIGHT = 400;
+
 function CubeThree() {
   const {
     highlight,
     objects,
     camera: { current: camera },
-    threeWidth: width,
-    threeHeight: height,
   } = useAppStore();
   const outline_selection = useRef<THREE.Object3D<THREE.Object3DEventMap>[]>([]);
   const refContainer = useRef<HTMLDivElement>(null);
@@ -67,6 +68,9 @@ function CubeThree() {
     if (inited.current) return;
     inited.current = true;
 
+    const width = THREE_WIDTH;
+    const height = THREE_HEIGHT;
+
     // === THREE.JS CODE START ===
     const scene = objects.current.scene;
     const ambientLight = new THREE.AmbientLight("white", 4);
@@ -76,8 +80,16 @@ function CubeThree() {
     light.position.set(1, 1, 1);
     scene.add(light);
 
+    // Load cubes into the scene
+    // objects.current.cubes.forEach((group) => scene.add(group));
+    scene.add(objects.current.rubiksGroup);
+    sceneRef.current = scene;
+
     camera.position.set(...cameraPositions.X);
+    // camera.lookAt(objects.current.rubiksGroup.position);
     camera.lookAt(scene.position);
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
 
     // Log camera position on c key down
     document.addEventListener("keydown", (e) => {
@@ -108,16 +120,10 @@ function CubeThree() {
     controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false;
-    controls.minDistance = 10;
+    controls.minDistance = 0;
     controls.maxDistance = 20;
     controls.enablePan = false;
     // controls.maxPolarAngle = Math.PI / 2;
-
-    // Load cubes into the scene
-    // objects.current.cubes.forEach((group) => scene.add(group));
-    scene.add(objects.current.rubiksGroup);
-    sceneRef.current = scene;
-    // updateCube(solved_cube);
 
     // Set up post-processing
     const outlinePass = new OutlinePass(new THREE.Vector2(width, height), scene, camera);

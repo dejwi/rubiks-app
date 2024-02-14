@@ -20,7 +20,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>{children}</body>
+      <body className={cn("h-screen bg-background font-sans antialiased w-screen overflow-clip", fontSans.variable)}>
+        {children}
+      </body>
     </html>
   );
 }
