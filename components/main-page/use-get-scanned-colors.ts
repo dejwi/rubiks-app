@@ -23,6 +23,8 @@ export const useGetScannedColors = ({ canvas, video }: IProps) => {
     const height = video.videoHeight;
     canvas.width = width;
     canvas.height = height;
+    // 120 - 416
+    // x - 1920
 
     const ctx = canvas.getContext("2d");
     if (!ctx) {
@@ -32,8 +34,9 @@ export const useGetScannedColors = ({ canvas, video }: IProps) => {
     ctx.drawImage(video, 0, 0);
     ctx.fillStyle = "#1c75d0A2";
 
+    const calculatedScanSize = scanSize * (width / window.innerWidth);
     const offset = 3;
-    const spacing = scanSize / 3 - offset;
+    const spacing = calculatedScanSize / 3 - offset;
     const startX = width / 2 - spacing + offset / 2;
     const startY = height / 2 - spacing + offset / 2;
 
@@ -41,12 +44,8 @@ export const useGetScannedColors = ({ canvas, video }: IProps) => {
     for (let y = 0; y < 3; y++) {
       for (let x = 0; x < 3; x++) {
         // helper dispaly
-        // ctx.fillRect(
-        //   startX + i * spacing - cbsize / 2,
-        //   startY + j * spacing - cbsize / 2,
-        //   cbsize,
-        //   cbsize
-        // );
+        // const cbsize = 20;
+        // ctx.fillRect(startX + x * spacing - cbsize / 2, startY + y * spacing - cbsize / 2, cbsize, cbsize);
 
         const data = ctx.getImageData(startX + x * spacing, startY + y * spacing, 1, 1).data;
         const hsv = RGBToHSV(data[0], data[1], data[2]);
@@ -72,14 +71,15 @@ export const useGetScannedColors = ({ canvas, video }: IProps) => {
         }
       }
     }
-    return colors;
 
-    // ctx.fillRect(
-    //   width / 2 - scanSize / 2,
-    //   height / 2 - scanSize / 2,
-    //   scanSize,
-    //   scanSize,
+    // ctx?.fillRect(
+    //   width / 2 - calculatedScanSize / 2,
+    //   height / 2 - calculatedScanSize / 2,
+    //   calculatedScanSize,
+    //   calculatedScanSize
     // );
+
+    return colors;
 
     // const x = ctx.getImageData(width / 2, height / 2, 1, 1).data;
     // console.log(x);

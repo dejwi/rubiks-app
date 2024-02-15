@@ -49,8 +49,17 @@ const ScanCubeStage = () => {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: deviceId }, width: 720, height: 1280 },
+        // video: { deviceId: { exact: deviceId }, width: 720, height: 1280, aspectRatio: 9 / 16 },
+        // @ts-ignore
+        // video: { exact: 9 / 16, facingMode: "environment" },
+        video: {
+          deviceId: { exact: deviceId },
+          aspectRatio: 9 / 16,
+          // width: { exact: 720 },
+          height: { exact: 1280 },
+        },
       });
+
       videoEl.srcObject = stream;
       videoEl.play();
     };
@@ -171,7 +180,8 @@ const ScanCubeStage = () => {
           </div>
         )}
       </motion.div>
-      <canvas id="canvas-scan" className={`w-[40rem] hidden  ${scanReversed ? "-scale-x-100" : ""}`} />
+
+      <canvas id="canvas-scan" className={`hidden ${scanReversed ? "-scale-x-100" : ""}`} />
     </div>
   );
 };

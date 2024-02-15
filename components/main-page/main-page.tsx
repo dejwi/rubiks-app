@@ -17,7 +17,7 @@ const MainPage = () => {
   useInitApp();
 
   return (
-    <div className="h-screen flex flex-col justify-center overflow-hidden max-w-screen">
+    <div className="min-h-screen flex flex-col justify-center">
       <AnimatePresence mode="wait">
         {(currentAppStage === "homepage" || currentAppStage === "deviceselect") && <InitStage key="init-stage" />}
         {currentAppStage === "scan" && <ScanCubeStage key="scan-stage" />}

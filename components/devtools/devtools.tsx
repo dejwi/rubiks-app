@@ -48,7 +48,7 @@ export function CubeDevTools() {
           DevTools
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[30rem] overflow-y-scroll">
         <DialogHeader>
           <DialogTitle>Devtools</DialogTitle>
         </DialogHeader>

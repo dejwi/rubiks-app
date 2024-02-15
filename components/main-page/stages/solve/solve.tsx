@@ -22,7 +22,7 @@ const SolveCubeStage = () => {
   }, []);
 
   return (
-    <div className="w-full h-full flex justify-center items-center flex-col">
+    <div className="w-full h-full flex justify-center items-center flex-col overflow-hidden">
       {cubeSolutionStep !== null && (
         <h1 className="text-muted-foreground grid grid-cols-3 w-[10rem] items-end">
           <span className="text-lg leading-none text-right">move</span>

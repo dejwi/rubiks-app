@@ -41,7 +41,7 @@ const defaultStore = {
   currentScanFace: -1 as number | null,
   scanReversed: false,
   deviceId: "",
-  previewReversed: true,
+  previewReversed: false,
   devScanPreviewShow: true,
   objects: getObjectsDefault(),
   ghostStickersTimeline: createRef() as React.MutableRefObject<gsap.core.Timeline>,
