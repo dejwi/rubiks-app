@@ -1,10 +1,10 @@
 "use client";
 
-import { colorScanMap, scannedColorToSide } from "@/helpers/color-scan-map";
-import { reverseCord } from "@/helpers/helper";
-import { RGBToHSV } from "@/helpers/rgb-to-hsv";
+import { colorScanMap, scannedColorToSide } from "@/lib/maps/color-scan-map";
+import { reverseCord } from "@/lib/helpers/helper";
+import { RGBToHSV } from "@/lib/helpers/rgb-to-hsv";
 import { useAppStore } from "@/lib/store/store";
-import { IScanResult } from "@/helpers/types";
+import { IScanResult } from "@/types/types";
 import { useCallback } from "react";
 
 interface IProps {

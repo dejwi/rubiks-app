@@ -1,4 +1,4 @@
-import { colorMapThree } from "@/helpers/helper";
+import { colorMapThree } from "./cube";
 
 export const colorEmissiveIntensityMap = {
   [colorMapThree.D.getHexString()]: 2,

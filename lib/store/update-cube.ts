@@ -1,6 +1,6 @@
-import { colorMapThree } from "@/helpers/helper";
+import { colorMapThree } from "../maps/cube";
 import { IStoreFn } from "./store";
-import { ICubeSide } from "@/helpers/types";
+import { ICubeSide } from "@/types/types";
 
 export const updateCube = ({ get, set, cube, setVisible }: IStoreFn & { cube: string; setVisible?: boolean }) => {
   if (cube.length !== 54) return;

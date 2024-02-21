@@ -1,11 +1,8 @@
 import * as THREE from "three";
-import { ICubeSide, IFaces } from "./types";
+import { ICubeSide } from "../../types/types";
 import { reverseCord } from "./helper";
 
-export const getCubePosBySide = (
-  side: ICubeSide,
-  facePos: { x: number; y: number },
-): THREE.Vector3 => {
+export const getCubePosBySide = (side: ICubeSide, facePos: { x: number; y: number }): THREE.Vector3 => {
   const cubePos = new THREE.Vector3(0, 0, 0);
 
   switch (side) {

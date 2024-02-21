@@ -1,7 +1,7 @@
 "use client";
 
-import { colorMapThree } from "@/helpers/helper";
-import { RGBToHSV } from "@/helpers/rgb-to-hsv";
+import { colorMapThree } from "@/lib/maps/cube";
+import { RGBToHSV } from "@/lib/helpers/rgb-to-hsv";
 import { useAppStore } from "@/lib/store/store";
 
 import { Toggle } from "../ui/toggle";

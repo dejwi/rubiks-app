@@ -1,4 +1,4 @@
-import { ICubeSide } from "./types";
+import { ICubeSide } from "../../types/types";
 
 export const cameraPositions: Record<ICubeSide, [number, number, number]> = {
   F: [4.397988038906189, 4.503300552295275, 9.240021031206643],

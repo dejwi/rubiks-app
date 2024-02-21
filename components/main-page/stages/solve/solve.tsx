@@ -4,7 +4,7 @@ import { CubePosAnchor } from "@/components/cube-visualization/cube-pos-anchor";
 import { THREE_HEIGHT, THREE_WIDTH } from "@/components/cube-visualization/cube-three";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { cameraPositions } from "@/helpers/camera-positions";
+import { cameraPositions } from "@/lib/maps/camera-positions";
 import { useAppStore } from "@/lib/store/store";
 import { useEffect, useRef } from "react";
 

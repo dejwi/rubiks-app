@@ -1,6 +1,6 @@
-import { cube_sides_scan } from "@/helpers/helper";
+import { cube_sides_scan } from "./maps/cube";
 import { useAppStore } from "@/lib/store/store";
-import { IScanResult } from "@/helpers/types";
+import { IScanResult } from "@/types/types";
 import { useEffect } from "react";
 
 interface IProps {

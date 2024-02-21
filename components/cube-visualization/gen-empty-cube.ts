@@ -1,5 +1,7 @@
-import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
-import { colorMapThree, cube_sides, getIdxByPos, getPosByIdx } from "@/helpers/helper";
+import { getCubePosBySide } from "@/lib/helpers/cube-pos-by-side";
+import { getIdxByPos, getPosByIdx } from "@/lib/helpers/helper";
+import { colorMapThree } from "@/lib/maps/cube";
+import { cube_sides } from "@/lib/maps/cube";
 import * as THREE from "three";
 import { Shape, ExtrudeGeometry } from "three";
 

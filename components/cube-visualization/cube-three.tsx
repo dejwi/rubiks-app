@@ -3,7 +3,8 @@
 import * as THREE from "three";
 
 import { useEffect, useRef } from "react";
-import { colorMapThree, getIdxByPos } from "@/helpers/helper";
+import { getIdxByPos } from "@/lib/helpers/helper";
+import { colorMapThree } from "@/lib/maps/cube";
 
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
@@ -11,9 +12,9 @@ import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { OutlinePass } from "three/examples/jsm/postprocessing/OutlinePass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
-import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
+import { getCubePosBySide } from "@/lib/helpers/cube-pos-by-side";
 import { useAppStore } from "@/lib/store/store";
-import { cameraPositions } from "@/helpers/camera-positions";
+import { cameraPositions } from "@/lib/maps/camera-positions";
 import { colorEmissiveIntensityMap } from "@/lib/maps/color-emissive-intesity";
 
 export const THREE_WIDTH = 400;

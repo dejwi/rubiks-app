@@ -1,9 +1,9 @@
 import * as THREE from "three";
 import { ICubeMoves } from "./moves";
 import { IStore } from "../store/store";
-import { getIdxByPos } from "@/helpers/helper";
-import { getCubePosBySide } from "@/helpers/cube-pos-by-side";
-import { ICubeSide } from "@/helpers/types";
+import { getIdxByPos } from "@/lib/helpers/helper";
+import { getCubePosBySide } from "@/lib/helpers/cube-pos-by-side";
+import { ICubeSide } from "@/types/types";
 import gsap from "gsap";
 import { CUBE_GAP, CUBE_SIZE } from "@/components/cube-visualization/gen-empty-cube";
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { colorMapThree, cube_sides, cube_sides_scan } from "@/helpers/helper";
-import { ICubeSide } from "@/helpers/types";
+import { colorMapThree } from "@/lib/maps/cube";
+import { cube_sides, cube_sides_scan } from "@/lib/maps/cube";
+import { ICubeSide } from "@/types/types";
 import { useAppStore } from "@/lib/store/store";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";

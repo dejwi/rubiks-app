@@ -1,4 +1,4 @@
-import { ICubeSide } from "./types";
+import { ICubeSide } from "../../types/types";
 
 export const colorScanMap: Record<string, { H: [number, number]; S: [number, number]; V: [number, number] }[]> = {
   W: [

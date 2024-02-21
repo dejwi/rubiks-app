@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useAppStore } from "./store/store";
-import { solved_cube } from "@/helpers/helper";
+import { solved_cube } from "@/lib/helpers/helper";
 
 const useInitApp = () => {
   const { toggleCubeRotating, updateCube, updateStore } = useAppStore();
