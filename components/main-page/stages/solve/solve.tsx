@@ -3,6 +3,7 @@
 import { CubePosAnchor } from "@/components/cube-visualization/cube-pos-anchor";
 import { THREE_HEIGHT, THREE_WIDTH } from "@/components/cube-visualization/cube-three";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { cameraPositions } from "@/helpers/camera-positions";
 import { useAppStore } from "@/lib/store/store";
 import { useEffect, useRef } from "react";
@@ -10,15 +11,25 @@ import { useEffect, useRef } from "react";
 const SolveCubeStage = () => {
   const { updateStore, initSolveCube, updateCameraPos, cubeSolutionStep, cubeSolution, nextCubeSolveStep } =
     useAppStore();
+  const { toast } = useToast();
 
   const inited = useRef(false);
   useEffect(() => {
     if (inited.current) return;
     inited.current = true;
 
-    updateCameraPos(cameraPositions.F);
     updateStore({ cubeScale: 1 });
-    initSolveCube();
+    try {
+      initSolveCube();
+      updateCameraPos(cameraPositions.F);
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "Failed to generate cube solution - cube scan may be incorrect",
+        title: "Error",
+        duration: Infinity,
+      });
+    }
   }, []);
 
   return (

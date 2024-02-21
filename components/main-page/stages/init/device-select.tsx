@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { useAppStore } from "@/lib/store/store";
 import { useEffect, useState } from "react";
-import { useToast } from "../ui/use-toast";
+import { useToast } from "../../../ui/use-toast";
 
 export function DeviceSelect() {
   const { updateStore, deviceId } = useAppStore();

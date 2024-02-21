@@ -4,8 +4,8 @@ import { colorScanMap, scannedColorToSide } from "@/helpers/color-scan-map";
 import { reverseCord } from "@/helpers/helper";
 import { RGBToHSV } from "@/helpers/rgb-to-hsv";
 import { useAppStore } from "@/lib/store/store";
-import { ICubeSide, IScanResult } from "@/helpers/types";
-import { RefObject, useCallback } from "react";
+import { IScanResult } from "@/helpers/types";
+import { useCallback } from "react";
 
 interface IProps {
   video: HTMLVideoElement | undefined;

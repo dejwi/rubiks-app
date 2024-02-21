@@ -4,17 +4,6 @@ import { ICubeSide, IFaces } from "./types";
 // URFDLB
 export const solved_cube = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB";
 
-export const cubeColorMap: Record<ICubeSide, string> = {
-  D: "#f7f7f7",
-  R: "#23e327",
-  F: "#f82628",
-  // O: "#ec7a2f",
-  B: "#d98b26",
-  U: "#fee32a",
-  L: "#259be4",
-  X: "#000000",
-};
-
 export const colorMapThree: Record<ICubeSide, THREE.Color> = {
   D: new THREE.Color("white"),
   U: new THREE.Color("yellow"),
@@ -23,15 +12,6 @@ export const colorMapThree: Record<ICubeSide, THREE.Color> = {
   F: new THREE.Color("red"),
   B: new THREE.Color("#f96706"),
   X: new THREE.Color("black"),
-};
-
-export const cubeSidesMap: Record<IFaces, number> = {
-  bottom: 3,
-  top: 2,
-  right: 0,
-  left: 1,
-  front: 4,
-  back: 5,
 };
 
 export const getPosByIdx = (id: number): THREE.Vector3 => {
@@ -54,6 +34,15 @@ export const cubeSidesFull: Record<ICubeSide, string> = {
   D: "Down",
   L: "Left",
   B: "Back",
+  X: "null",
+};
+export const cubeSidesNamedColors: Record<ICubeSide, string> = {
+  U: "Yellow",
+  R: "Green",
+  F: "Red",
+  D: "White",
+  L: "Blue",
+  B: "Orange",
   X: "null",
 };
 

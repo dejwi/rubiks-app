@@ -5,8 +5,8 @@ import { useScanRefresh } from "@/lib/use-scan-refresh";
 import React, { useEffect, useRef, useState } from "react";
 import { useGetScannedColors } from "../../use-get-scanned-colors";
 import { useAppStore } from "@/lib/store/store";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { cubeSidesFull, cube_sides_scan } from "@/helpers/helper";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { colorMapThree, cubeSidesFull, cubeSidesNamedColors, cube_sides_scan } from "@/helpers/helper";
 import ScanColorPanel from "./color-panel";
 import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -49,13 +49,9 @@ const ScanCubeStage = () => {
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        // video: { deviceId: { exact: deviceId }, width: 720, height: 1280, aspectRatio: 9 / 16 },
-        // @ts-ignore
-        // video: { exact: 9 / 16, facingMode: "environment" },
         video: {
           deviceId: { exact: deviceId },
           aspectRatio: 9 / 16,
-          // width: { exact: 720 },
           height: { exact: 1280 },
         },
       });
@@ -94,6 +90,21 @@ const ScanCubeStage = () => {
     updateStore({ currentAppStage: "solve" });
   };
 
+  const disabledScanConfirmBtn = () => {
+    if (currentScanFace === -1) return true;
+    if (isConfirmingColors) {
+      if (lastScanResult.some((r) => r.destSide === "X")) return true;
+      // Check if middle color is of the correct side
+      if (
+        currentScanFace !== null &&
+        currentScanFace !== -1 &&
+        lastScanResult.length === 9 &&
+        lastScanResult[4].destSide !== cube_sides_scan[currentScanFace]
+      )
+        return true;
+    }
+  };
+
   return (
     <div>
       <motion.div
@@ -110,10 +121,10 @@ const ScanCubeStage = () => {
         />
         <div className="absolute">
           <Card
-            className="w-[350px] bg-card/80 backdrop-blur-sm"
-            style={{ marginTop: `calc(-${scanSize}px - 12.5rem )` }}
+            className="w-[350px] bg-card/80 backdrop-blur-sm relative"
+            style={{ marginTop: `calc(-${scanSize}px - 9rem )` }}
           >
-            <CardHeader className="py-4">
+            <CardHeader className="pt-4 pb-0 relative">
               <CardTitle
                 className={cn(
                   "text-muted-foreground transition-opacity duration-700 delay-700",
@@ -121,32 +132,51 @@ const ScanCubeStage = () => {
                 )}
               >
                 {isConfirmingColors ? "Confirm" : "Show"}{" "}
-                <span className="text-foreground text-lg">
-                  {currentScanFace && currentScanFace !== -1
+                <span
+                  className="text-lg"
+                  style={{
+                    color:
+                      currentScanFace !== null && currentScanFace !== -1
+                        ? `#${colorMapThree[cube_sides_scan[currentScanFace]].getHexString()}`
+                        : "",
+                  }}
+                >
+                  {currentScanFace !== null && currentScanFace !== -1
                     ? cubeSidesFull[cube_sides_scan[currentScanFace]]
-                    : cubeSidesFull.F}
+                    : cubeSidesFull.F}{" "}
                 </span>{" "}
                 face
               </CardTitle>
-              {/* <CardDescription>Tap color to correct it</CardDescription> */}
+              {!isConfirmingColors && currentScanFace !== null && currentScanFace !== -1 && (
+                <CardDescription className="!mt-0 absolute top-full">
+                  Center color -{" "}
+                  <span
+                    style={{
+                      color: `#${colorMapThree[cube_sides_scan[currentScanFace]].getHexString()}`,
+                    }}
+                  >
+                    {cubeSidesNamedColors[cube_sides_scan[currentScanFace]]}
+                  </span>
+                </CardDescription>
+              )}
             </CardHeader>
-            <CardContent className="h-[9rem]">
+            <CardContent className="h-[10.5rem]">
               {currentScanFace !== null ? (
                 <div className="grid grid-cols-[1fr_1fr] h-full w-full">
                   <div>
                     <AnimatePresence>{isConfirmingColors && <ScanColorPanel key="scan-color-panel" />}</AnimatePresence>
                   </div>
                   <div className="flex w-full justify-center items-center">
-                    {streamStared && <CubePosAnchor className="mr-[-3.5rem]" />}
+                    <CubePosAnchor className="mr-[-3.5rem] mt-[-5rem]" />
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center justify-center h-full w-full">
+                <div className="flex items-center justify-center h-full w-full ">
                   <CubePosAnchor />
                 </div>
               )}
             </CardContent>
-            <CardFooter className="flex justify-between py-4">
+            <CardFooter className="p-4 absolute bottom-0 right-0">
               <Button
                 variant="outline"
                 // disabled={currentScanFace !== null}
@@ -156,7 +186,7 @@ const ScanCubeStage = () => {
                 Solve
               </Button>
               {currentScanFace !== null && (
-                <Button disabled={currentScanFace === -1} onClick={mainCardBtnClick}>
+                <Button disabled={disabledScanConfirmBtn()} onClick={mainCardBtnClick}>
                   {isConfirmingColors ? "Confirm" : "Scan"}
                 </Button>
               )}

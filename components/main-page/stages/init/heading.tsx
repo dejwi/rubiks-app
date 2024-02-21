@@ -41,7 +41,6 @@ const MainPageHeading = () => {
         animate="visible"
         exit="hidden"
       >
-        {/* <AnimatedText text={subText} /> */}
         {subText.map((t) => (
           <AnimatedText key={`sub-${t}`} text={t} />
         ))}
@@ -88,9 +87,9 @@ const AnimatedText = ({ text }: { text: string }) => {
         return (
           // Wrap each word in the Wrapper component
           <span className="whitespace-nowrap" key={`w-${word}-${index}`}>
-            {words[index].flat().map((element, index) => {
+            {words[index].flat().map((element, i) => {
               return (
-                <span className="inline-block overflow-hidden" key={`text-${element}`}>
+                <span className="inline-block overflow-hidden" key={`text-${element}-${i}`}>
                   <motion.span className="inline-block" variants={animatedTextVariants}>
                     {element}
                   </motion.span>
@@ -100,13 +99,6 @@ const AnimatedText = ({ text }: { text: string }) => {
           </span>
         );
       })}
-      {/* {characters.map((char, i) => (
-        <span className="inline-block overflow-hidden" key={`text-${char}`}>
-          <motion.span className="inline-block" variants={animatedTextVariants}>
-            {char}
-          </motion.span>
-        </span>
-      ))} */}
     </div>
   );
 };

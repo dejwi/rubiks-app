@@ -50,7 +50,7 @@ const defaultStore = {
   lastScanResult: [] as Array<IScanResult[number] & { id: number }>,
   nextCubeRotation: null as null | THREE.Euler,
   cubeSolution: [] as string[],
-  cubeSolutionStep: 0 as number | null,
+  cubeSolutionStep: null as number | null,
   isDuringRotation: false,
   currentAppStage: "homepage" as IAppStages,
   cubeTop: 0,
@@ -86,6 +86,12 @@ export const useAppStore = create<IStore>()((set, get) => ({
       .map((s) => s.split(" "))
       .flat()
       .filter((s) => s !== "");
+
+    if (!solution || !solution.length) {
+      set({ cubeSolution: [], cubeSolutionStep: null });
+      throw new Error("Unsolveable cube");
+    }
+
     set({ cubeSolution: solution, cubeSolutionStep: 0 });
     get().nextCubeSolveStep();
   },
@@ -102,7 +108,7 @@ export const useAppStore = create<IStore>()((set, get) => ({
     if (isIn2Part) {
       if (currentStep === solution.length - 1) {
         set({ cubeSolutionStep: null });
-        get().toggleCubeRotating();
+        // get().toggleCubeRotating();
       } else {
         set({ cubeSolutionStep: currentStep + 1 });
       }

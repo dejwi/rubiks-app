@@ -7,7 +7,7 @@ import CubeVisualization from "../cube-visualization/cube-visualization";
 
 import useInitApp from "@/lib/use-init";
 import { AnimatePresence } from "framer-motion";
-import InitStage from "./stages/init";
+import InitStage from "./stages/init/init";
 import ScanCubeStage from "./stages/scan/scan";
 import SolveCubeStage from "./stages/solve/solve";
 
