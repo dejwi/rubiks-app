@@ -17,15 +17,32 @@ export const rotateCube2Part = ({ get, set, move }: IStoreFn & { move: ICubeMove
   set({ isDuringRotation: true });
 
   const nextCubeRotation = get().nextCubeRotation;
+  const outlinedSelection = get().outlinedSelection;
 
   if (nextCubeRotation) {
-    rotateCubeAction(get, nextCubeRotation, move, () => set({ isDuringRotation: false, nextCubeRotation: null }), true);
+    rotateCubeAction(
+      get,
+      nextCubeRotation,
+      move,
+      () => {
+        set({ isDuringRotation: false, nextCubeRotation: null });
+        outlinedSelection.current.length = 0;
+      },
+      true
+    );
   } else {
     const { target, preTarget } = getRotation(move, new THREE.Euler());
     const next = target;
     next.x -= preTarget.x;
     next.y -= preTarget.y;
     next.z -= preTarget.z;
-    rotateCubeAction(get, preTarget, move, () => set({ isDuringRotation: false, nextCubeRotation: next }), false);
+    rotateCubeAction(
+      get,
+      preTarget,
+      move,
+      () => set({ isDuringRotation: false, nextCubeRotation: next }),
+      false,
+      (c) => outlinedSelection.current.push(c)
+    );
   }
 };

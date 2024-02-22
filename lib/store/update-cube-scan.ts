@@ -4,6 +4,7 @@ import { cameraPositions } from "@/lib/maps/camera-positions";
 import { colorMapThree } from "../maps/cube";
 import { cube_sides_scan, cube_sides } from "../maps/cube";
 import { IScanResult } from "@/types/types";
+import gsap from "gsap";
 
 const updateCubeScan = ({ get, set, scan }: IStoreFn & { scan: IScanResult }) => {
   const { currentScanFace, objects, ghostStickersTimeline: timeline, cube } = get();

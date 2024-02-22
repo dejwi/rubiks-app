@@ -24,6 +24,11 @@ const getCameraDefault = () => {
   camera.current = new THREE.PerspectiveCamera(40, 500 / 500);
   return camera;
 };
+const getOutlinedDefault = () => {
+  const highlighted = createRef() as React.MutableRefObject<any[]>;
+  highlighted.current = [];
+  return highlighted;
+};
 
 const appStages = ["homepage", "deviceselect", "scan", "solve"] as const;
 export type IAppStages = (typeof appStages)[number];
@@ -54,6 +59,7 @@ const defaultStore = {
   // cubeRight: 0,
   cubeScale: 0.5,
   cubeLeft: 0,
+  outlinedSelection: getOutlinedDefault(),
 };
 
 type IDefaultData = typeof defaultStore;

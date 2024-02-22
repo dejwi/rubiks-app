@@ -4,6 +4,7 @@ import { colorMapThree } from "../maps/cube";
 import { cube_sides } from "../maps/cube";
 import { colorEmissiveIntensityMap } from "../maps/color-emissive-intesity";
 import { ghostSideAnimationSettings } from "@/components/cube-visualization/animation-settings";
+import gsap from "gsap";
 
 const updateCubeSide = ({ get, set, colors, side }: IStoreFn & { side: ICubeSide; colors: ICubeSide[] }) => {
   const stickers = get().objects.current.stickers;

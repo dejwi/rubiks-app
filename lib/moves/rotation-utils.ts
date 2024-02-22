@@ -55,7 +55,8 @@ export const rotateCubeAction = (
   rotateTo: THREE.Euler,
   move: ICubeMoves,
   cb: () => void,
-  updateCubeArray?: boolean
+  updateCubeArray?: boolean,
+  cbElement?: (c: THREE.Group<THREE.Object3DEventMap>) => void
 ) => {
   const { objects } = get();
   const scene = objects.current.scene;
@@ -75,6 +76,7 @@ export const rotateCubeAction = (
       const cube = cubes[idx];
       rotationGroup.attach(cube);
       toRotateObjects.push(cube);
+      if (cbElement) cbElement(cube);
     }
   }
 

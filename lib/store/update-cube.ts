@@ -2,6 +2,7 @@ import { colorMapThree } from "../maps/cube";
 import { IStoreFn } from "./store";
 import { ICubeSide } from "@/types/types";
 
+
 export const updateCube = ({ get, set, cube, setVisible }: IStoreFn & { cube: string; setVisible?: boolean }) => {
   if (cube.length !== 54) return;
   const stickers = get().objects.current.stickers;
