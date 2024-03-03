@@ -4,7 +4,7 @@ Nextjs user-friendly rubik's solver with 3D visuals, scanning cube sides with a 
 
 ## Stack
 
-Nextjs, React, Threejs, Framer-motion, Gsap, Shadcn/ui, Typescript
+Nextjs, React, Threejs, Framer-motion, Gsap, Shadcn/ui, Typescript, Tailwindcss
 
 ## Preview
 
