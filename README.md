@@ -8,7 +8,7 @@ Nextjs, React, Threejs, Framer-motion, Gsap, Shadcn/ui, Typescript
 
 ## Preview
 
-Hosted demo - https://rubiks-app-psi.vercel.app
+Hosted demo - [rubiks-solver.tech](https://rubiks-solver.tech)
 
 ## Dev
 
