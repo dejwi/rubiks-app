@@ -10,8 +10,9 @@ const fontSans = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Rubiks Solver",
-  description: "Rubiks solver",
+  title: "Rubik's 3D Solver",
+  description: "Rubik's Cube Solver - Scan your cube with an smartphone and get a simple step-by-step 3D explanation.",
+  authors: [{ name: "Dawid Krasowski", url: "https://github.com/dejwi" }],
 };
 
 export default function RootLayout({
