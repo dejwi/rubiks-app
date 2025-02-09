@@ -10,8 +10,7 @@ Nextjs, React, Threejs, Framer-motion, Gsap, Shadcn/ui, Typescript, Tailwindcss
 
 Hosted demo - [rubiks-solver.tech](https://rubiks-solver.tech)
 
-https://github.com/dejwi/rubiks-app/assets/80927085/e16e9249-9ead-4593-ad16-fda4d720117f
-
+<video src="https://github.com/dejwi/rubiks-app/assets/80927085/e16e9249-9ead-4593-ad16-fda4d720117f"></video>
 
 
 
